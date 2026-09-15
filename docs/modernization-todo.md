@@ -88,7 +88,7 @@
 - [x] 已升级根项目和 `test/e2e` workspace 至 TypeScript `~6.0.2`，并通过初始类型检查；后续以 tsserver 集成测试验证运行时兼容性。
 - [x] 已采用 `oxfmt` 和 `oxlint`，并将格式检查接入 CI；当前 9 条非阻断 warning 来自测试夹具和冗余转义，后续单独清理。
 - [x] 已移除 ESLint、Prettier 及 `eslint-plugin-prettier`；格式化通过独立 `format:check` 执行。
-- [ ] 将 `glob` 从开发依赖移除，前提是确认没有脚本或测试使用它；目前 `package.json` 脚本没有引用。
+- [x] 移除未使用的 `glob` 开发依赖；确认没有脚本或测试使用它。
 - [x] 已升级 `@types/node` 至 Vitest 所需版本，并移除 Chai、Mocha 及其类型；`yarn.lock` 中的 Chai 仅为 Vitest 的传递依赖。
 - [x] 已以独立格式化基线提交前变更应用 `oxfmt`，后续功能改动应避免混入全仓机械格式化。
 - [ ] 添加依赖更新机器人（Renovate 或 Dependabot），将运行时依赖、开发工具、GitHub Actions 分组，避免大跨度堆叠升级。

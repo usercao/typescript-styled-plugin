@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Remove the unused `glob` development dependency.
 - Add virtual-document mapping and tsserver interpolation regression coverage.
 - Add an auto-discovered e2e TypeScript project for editor diagnostics.
 - Enforce strict TypeScript checking across source and end-to-end test configurations.

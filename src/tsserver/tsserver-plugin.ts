@@ -4,16 +4,14 @@ import {
   decorateWithTemplateLanguageService,
   TemplateSettings,
 } from 'typescript-template-language-service-decorator'
-import type * as ts from 'typescript/lib/tsserverlibrary'
+import type * as ts from 'typescript/lib/tsserverlibrary.js'
 
-import {
-  PluginConfigurationManager,
-  StyledPluginConfiguration,
-} from '../configuration/plugin-configuration'
-import { StyledTemplateLanguageService } from '../template-language-service'
-import { getTemplateSubstitutions } from '../template/template-substitutions'
-import { StyledVirtualDocumentProvider } from '../virtual-document/styled-virtual-document-provider'
-import { TsServerLogger } from './tsserver-logger'
+import { PluginConfigurationManager } from '../configuration/plugin-configuration.ts'
+import type { StyledPluginConfiguration } from '../configuration/plugin-configuration.ts'
+import { StyledTemplateLanguageService } from '../template-language-service.ts'
+import { getTemplateSubstitutions } from '../template/template-substitutions.ts'
+import { StyledVirtualDocumentProvider } from '../virtual-document/styled-virtual-document-provider.ts'
+import { TsServerLogger } from './tsserver-logger.ts'
 
 export class TsServerStyledPlugin {
   private logger?: TsServerLogger

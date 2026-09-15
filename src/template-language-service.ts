@@ -3,27 +3,29 @@
 //
 // Original code forked from https://github.com/Quramy/ts-graphql-plugin
 
-import {
+import type {
   TemplateContext,
   TemplateLanguageService,
 } from 'typescript-template-language-service-decorator'
-import type * as ts from 'typescript/lib/tsserverlibrary'
+import type * as ts from 'typescript/lib/tsserverlibrary.js'
 
-import { PluginConfigurationManager } from './configuration/plugin-configuration'
-import { CodeActionsFeature } from './features/code-actions'
-import { CompletionsFeature } from './features/completions'
-import { DiagnosticsFeature } from './features/diagnostics'
-import { FoldingFeature } from './features/folding'
-import { HoverFeature } from './features/hover'
+import { PluginConfigurationManager } from './configuration/plugin-configuration.ts'
+import { CodeActionsFeature } from './features/code-actions.ts'
+import { CompletionsFeature } from './features/completions.ts'
+import { DiagnosticsFeature } from './features/diagnostics.ts'
+import { FoldingFeature } from './features/folding.ts'
+import { HoverFeature } from './features/hover.ts'
 import {
-  CssLanguageService,
   DefaultEmmetCompletionProvider,
   DefaultStylesLanguageServiceFactory,
+} from './features/styles-language-services.ts'
+import type {
+  CssLanguageService,
   EmmetCompletionProvider,
   StylesLanguageServiceFactory,
   ScssLanguageService,
-} from './features/styles-language-services'
-import { VirtualDocumentProvider } from './virtual-document/styled-virtual-document-provider'
+} from './features/styles-language-services.ts'
+import type { VirtualDocumentProvider } from './virtual-document/styled-virtual-document-provider.ts'
 
 export class StyledTemplateLanguageService implements TemplateLanguageService {
   private cssLanguageServiceInstance?: CssLanguageService

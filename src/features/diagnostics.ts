@@ -1,11 +1,11 @@
-import { TemplateContext } from 'typescript-template-language-service-decorator'
-import type * as ts from 'typescript/lib/tsserverlibrary'
+import type { TemplateContext } from 'typescript-template-language-service-decorator'
+import type * as ts from 'typescript/lib/tsserverlibrary.js'
 import * as vscode from 'vscode-languageserver-types'
 
-import { pluginIdentity } from '../tsserver/plugin-identity'
-import { VirtualDocumentProvider } from '../virtual-document/styled-virtual-document-provider'
-import { CSS_DIAGNOSTIC_CODE } from './css-diagnostic-code'
-import { ScssLanguageService } from './styles-language-services'
+import { pluginIdentity } from '../tsserver/plugin-identity.ts'
+import type { VirtualDocumentProvider } from '../virtual-document/styled-virtual-document-provider.ts'
+import { CSS_DIAGNOSTIC_CODE } from './css-diagnostic-code.ts'
+import type { ScssLanguageService } from './styles-language-services.ts'
 
 export class DiagnosticsFeature {
   public constructor(

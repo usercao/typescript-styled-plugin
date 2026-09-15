@@ -1,9 +1,9 @@
-import { TemplateContext } from 'typescript-template-language-service-decorator'
-import type * as ts from 'typescript/lib/tsserverlibrary'
+import type { TemplateContext } from 'typescript-template-language-service-decorator'
+import type * as ts from 'typescript/lib/tsserverlibrary.js'
 import * as vscode from 'vscode-languageserver-types'
 
-import { VirtualDocumentProvider } from '../virtual-document/styled-virtual-document-provider'
-import { ScssLanguageService } from './styles-language-services'
+import type { VirtualDocumentProvider } from '../virtual-document/styled-virtual-document-provider.ts'
+import type { ScssLanguageService } from './styles-language-services.ts'
 
 export class HoverFeature {
   public constructor(

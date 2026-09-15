@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
-import { TemplateContext } from 'typescript-template-language-service-decorator'
-import type * as ts from 'typescript/lib/tsserverlibrary'
+import type { TemplateContext } from 'typescript-template-language-service-decorator'
+import type * as ts from 'typescript/lib/tsserverlibrary.js'
 import { TextDocument } from 'vscode-languageserver-textdocument'
 
 export interface VirtualDocumentProvider {

@@ -1,15 +1,15 @@
-import { TemplateContext } from 'typescript-template-language-service-decorator'
-import type * as ts from 'typescript/lib/tsserverlibrary'
+import type { TemplateContext } from 'typescript-template-language-service-decorator'
+import type * as ts from 'typescript/lib/tsserverlibrary.js'
 import { TextDocument } from 'vscode-languageserver-textdocument'
 import * as vscode from 'vscode-languageserver-types'
 
-import { StyledPluginConfiguration } from '../configuration/plugin-configuration'
-import { VirtualDocumentProvider } from '../virtual-document/styled-virtual-document-provider'
-import {
+import type { StyledPluginConfiguration } from '../configuration/plugin-configuration.ts'
+import type { VirtualDocumentProvider } from '../virtual-document/styled-virtual-document-provider.ts'
+import type {
   CssLanguageService,
   EmmetCompletionProvider,
   ScssLanguageService,
-} from './styles-language-services'
+} from './styles-language-services.ts'
 
 const emptyCompletionList: vscode.CompletionList = {
   items: [],

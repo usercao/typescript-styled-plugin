@@ -55,6 +55,22 @@ describe('Plugin lifecycle', () => {
     assert.isTrue(completions[1].body.some((item) => item.name === 'aliceblue'))
   })
 
+  it('should suppress CSS diagnostics when validation is disabled', async () => {
+    const server = createServer()
+    const file = path.join(__dirname, '..', 'styled-project-fixture', 'main.ts')
+    openMockFile(server, file, 'const q = css`boarder: 1px solid black;`')
+    server.sendCommand('configurePlugin', {
+      pluginName: '@styled/typescript-styled-plugin',
+      configuration: { validate: false },
+    })
+    server.sendCommand('semanticDiagnosticsSync', { file })
+
+    await server.close()
+    const diagnostics = getFirstResponseOfType('semanticDiagnosticsSync', server)
+    assert.isTrue(diagnostics.success)
+    assert.isFalse(diagnostics.body.some((diagnostic) => diagnostic.code === cssDiagnosticCode))
+  })
+
   it('should leave unsupported TypeScript hosts functional without CSS diagnostics', async () => {
     const server = createServer('styled-project-fixture', {
       typescriptPackage: 'typescript-legacy',

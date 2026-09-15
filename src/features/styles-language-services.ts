@@ -1,9 +1,6 @@
 import { doComplete as emmetDoComplete } from '@vscode/emmet-helper'
-import {
-  LanguageService,
-  getCSSLanguageService,
-  getSCSSLanguageService,
-} from 'vscode-css-languageservice'
+import { getCSSLanguageService, getSCSSLanguageService } from 'vscode-css-languageservice'
+import type { LanguageService } from 'vscode-css-languageservice'
 import { TextDocument } from 'vscode-languageserver-textdocument'
 import * as vscode from 'vscode-languageserver-types'
 

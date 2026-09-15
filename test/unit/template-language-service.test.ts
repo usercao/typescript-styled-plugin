@@ -1,5 +1,5 @@
 import type { TemplateContext } from 'typescript-template-language-service-decorator'
-import * as ts from 'typescript/lib/tsserverlibrary'
+import * as ts from 'typescript/lib/tsserverlibrary.js'
 import { assert, describe, it } from 'vitest'
 
 import {

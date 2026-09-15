@@ -7,9 +7,10 @@ template literals.
 ## Host requirements
 
 The plugin supports tsserver hosts that use TypeScript 6.0.2 or newer and
-Node.js 24.11.0 or newer. The automated suite covers the standard Node.js
-tsserver path. Installation alone does not prove that an editor can load the
-ESM-only plugin; see [ESM-only v2 compatibility](esm-v2-compatibility.md).
+Node.js 24.11.0 or newer. It is ESM-only and requires the host to support
+synchronous `require(ESM)` loading without top-level `await` in the plugin
+module graph. The automated suite covers the standard Node.js tsserver path;
+installation alone does not prove that an editor can load the plugin.
 
 ## Install and configure
 

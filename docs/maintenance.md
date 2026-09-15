@@ -28,6 +28,7 @@ Do not install dependencies inside individual fixture directories.
 | ----------------------- | -------------------------------------------------------------------------------------------- |
 | `yarn compile`          | Build the ESM tsserver entry and ESM API into `lib/`.                                        |
 | `yarn watch:compile`    | Rebuild the package while source files change.                                               |
+| `yarn benchmark`        | Measure template completion latency, cache throughput, and retained heap usage.              |
 | `yarn format`           | Apply formatting with `oxfmt`.                                                               |
 | `yarn format:check`     | Check formatting without modifying files.                                                    |
 | `yarn lint`             | Run `oxlint`.                                                                                |
@@ -41,6 +42,20 @@ Do not install dependencies inside individual fixture directories.
 
 Run `yarn verify` before opening a pull request. It is the release-oriented
 local gate and the closest equivalent to the CI workflow.
+
+## Performance baseline
+
+Run `yarn benchmark` to execute `test/performance/template-language-service.bench.ts` with Node's native TypeScript transform and explicit garbage collection. The benchmark covers a 400-rule template, a template with 120 interpolations, and a warmed completion-cache lookup.
+
+On 2026-09-15 with Node.js 24.21.0 and Yarn 4.18.0, two local runs recorded the following ranges:
+
+| Scenario                     | Mean latency   | Throughput          |
+| ---------------------------- | -------------- | ------------------- |
+| Large template completion    | 8.4-9.2 ms     | 115-122 ops/s       |
+| 120-interpolation completion | 2.5-2.7 ms     | 390-415 ops/s       |
+| Warmed cache completion      | 0.059-0.060 ms | 17,000-17,200 ops/s |
+
+The retained heap delta after explicit garbage collection was 2.8-2.9 MB. This baseline does not indicate a need for additional caching or incremental parsing; repeat it before considering either optimization.
 
 ## Project layout
 
@@ -63,9 +78,10 @@ affects plugin discovery, tsserver protocol behavior, source-file handling, or
 the interaction between the plugin and a real TypeScript host.
 
 The standard E2E suite verifies Node 24 and the current TypeScript 6 tsserver
-path. It does not establish compatibility with a specific editor. Follow the
-[ESM-only compatibility requirements](esm-v2-compatibility.md) before claiming
-support for an additional host.
+path. It does not establish compatibility with a specific editor. Before
+claiming support for an additional host, verify its TypeScript and Node versions
+meet the package requirements, that it supports synchronous `require(ESM)`, and
+that it can load the plugin through the normal `plugins` configuration path.
 
 ## Packaging and pull requests
 
@@ -76,7 +92,7 @@ from the package's `dependencies`. Inspect the release contents with:
 npm pack --dry-run
 ```
 
-Keep changes focused, update `docs/CHANGELOG.md` under `Unreleased`, and include
-tests at a scope proportionate to the behavior change. Use a feature branch,
-push it to your fork, and open a pull request against this repository. All
-contributors must follow the [Code of Conduct](../CODE_OF_CONDUCT.md).
+Keep changes focused and include tests at a scope proportionate to the behavior
+change. Use a feature branch, push it to your fork, and open a pull request
+against this repository. All contributors must follow the
+[Code of Conduct](../CODE_OF_CONDUCT.md).

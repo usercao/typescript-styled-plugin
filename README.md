@@ -14,7 +14,7 @@ Cross-editor TypeScript Server plugin that adds intellisense to [styled componen
 
 ## Usage
 
-This plugin supports tsserver hosts that use TypeScript 6.0.2 or newer and Node.js 24.11.0 or newer. The automated suite covers the standard Node.js tsserver path. It is published as ESM-only and depends on Node's synchronous `require(ESM)` interoperability. An editor must use a compatible tsserver host and runtime; successful installation alone does not prove editor compatibility. See [the compatibility notes](docs/esm-v2-compatibility.md) for details.
+This plugin supports tsserver hosts that use TypeScript 6.0.2 or newer and Node.js 24.11.0 or newer. It is ESM-only and relies on Node's synchronous `require(ESM)` interoperability, so the host must support synchronous ESM loading and the plugin module graph must not use top-level `await`. The automated suite covers the standard Node.js tsserver path. An editor must use a compatible tsserver host and runtime; successful installation alone does not prove editor compatibility.
 
 Install the plugin alongside the workspace TypeScript SDK and configure it in
 `tsconfig.json` or `jsconfig.json`:

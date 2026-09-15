@@ -9,3 +9,6 @@ log.txt
 
 test-workspace
 lib
+
+# Local documentation that should not be committed.
+docs/local/

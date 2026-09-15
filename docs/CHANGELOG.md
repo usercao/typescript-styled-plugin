@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Upgrade the VS Code language-service dependencies to their latest stable releases.
 - Clarify the tsserver-plugin scope and host-compatibility roadmap.
 - Remove the unused `glob` development dependency.
 - Add virtual-document mapping and tsserver interpolation regression coverage.

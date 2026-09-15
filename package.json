@@ -52,11 +52,11 @@
     "watch:compile": "tsdown --watch"
   },
   "dependencies": {
-    "@vscode/emmet-helper": "2.9.2",
+    "@vscode/emmet-helper": "2.11.0",
     "typescript-template-language-service-decorator": "^2.3.2",
-    "vscode-css-languageservice": "6.2.11",
-    "vscode-languageserver-textdocument": "1.0.11",
-    "vscode-languageserver-types": "3.17.5"
+    "vscode-css-languageservice": "6.3.10",
+    "vscode-languageserver-textdocument": "1.0.14",
+    "vscode-languageserver-types": "3.18.3"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

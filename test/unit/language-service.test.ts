@@ -2,14 +2,17 @@ import type { Logger, TemplateContext } from 'typescript-template-language-servi
 import * as ts from 'typescript/lib/tsserverlibrary'
 import { assert, describe, it } from 'vitest'
 
-import { ConfigurationManager, StyledPluginConfiguration } from '../../src/_configuration'
 import { StyledTemplateLanguageService } from '../../src/_language-service'
-import { StyledVirtualDocumentFactory } from '../../src/_virtual-document-provider'
+import {
+  ConfigurationManager,
+  StyledPluginConfiguration,
+} from '../../src/configuration/configuration'
 import {
   CssLanguageService,
   EmbeddedLanguageServiceFactory,
   ScssLanguageService,
 } from '../../src/features/language-service-factory'
+import { StyledVirtualDocumentFactory } from '../../src/virtual-document/provider'
 
 describe('StyledTemplateLanguageService', () => {
   it('should convert CSS completion items to TypeScript completion entries', () => {

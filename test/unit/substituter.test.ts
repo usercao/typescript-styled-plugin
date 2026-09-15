@@ -1,7 +1,7 @@
 // @ts-check
 import { assert, describe, it } from 'vitest'
 
-import { getSubstitutions } from '../../src/_substituter'
+import { getSubstitutions } from '../../src/template/substituter'
 
 describe('substituter', () => {
   it('should replace property value with x', () => {

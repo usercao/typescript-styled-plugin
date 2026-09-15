@@ -2,7 +2,7 @@ import type { TemplateContext } from 'typescript-template-language-service-decor
 import * as ts from 'typescript/lib/tsserverlibrary'
 import { assert, describe, it } from 'vitest'
 
-import { StyledVirtualDocumentFactory } from '../../src/_virtual-document-provider'
+import { StyledVirtualDocumentFactory } from '../../src/virtual-document/provider'
 
 describe('StyledVirtualDocumentFactory', () => {
   it('should wrap normal templates in a root rule and map positions in both directions', () => {

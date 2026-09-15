@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Remove obsolete top-level compatibility re-exports after migrating internal and public API imports to the feature modules.
 - Move the shared plugin identity into the tsserver module and remove the misleading `_config` module.
 - Split template, virtual-document, configuration, tsserver, and language-service features into focused modules with injectable CSS/SCSS service interfaces.
 - Remove redundant `unit` and `e2e` script aliases.

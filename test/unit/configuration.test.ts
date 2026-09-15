@@ -1,6 +1,6 @@
 import { assert, describe, it } from 'vitest'
 
-import { ConfigurationManager } from '../../src/_configuration'
+import { ConfigurationManager } from '../../src/configuration/configuration'
 
 describe('ConfigurationManager', () => {
   it('should merge lint settings while preserving defaults', () => {

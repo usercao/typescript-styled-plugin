@@ -2,8 +2,8 @@
 // Licensed under the MIT License.
 import type * as ts from 'typescript/lib/tsserverlibrary'
 
-import { StyledPlugin } from './tsserver/plugin'
+import { TsServerStyledPlugin } from './tsserver/tsserver-plugin'
 
-const init = (mod: { typescript: typeof ts }) => new StyledPlugin(mod.typescript)
+const createPlugin = (mod: { typescript: typeof ts }) => new TsServerStyledPlugin(mod.typescript)
 
-export { init as 'module.exports' }
+export { createPlugin as 'module.exports' }

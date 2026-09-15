@@ -5,8 +5,8 @@ export default defineConfig({
     environment: 'node',
     fileParallelism: false,
     globals: true,
-    exclude: ['test/e2e/tests/_helpers.ts'],
-    include: ['test/unit/**/*.test.ts', 'test/e2e/tests/**/*.test.ts'],
+    exclude: ['test/e2e/scenarios/tsserver-test-helpers.ts'],
+    include: ['test/unit/**/*.test.ts', 'test/e2e/scenarios/**/*.test.ts'],
     testTimeout: 10_000,
   },
 })

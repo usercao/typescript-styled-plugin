@@ -2,10 +2,9 @@ import { TemplateContext } from 'typescript-template-language-service-decorator'
 import type * as ts from 'typescript/lib/tsserverlibrary'
 import * as vscode from 'vscode-languageserver-types'
 
-import { VirtualDocumentProvider } from '../virtual-document/provider'
-import { ScssLanguageService } from './language-service-factory'
-
-const cssErrorCode = 9999
+import { VirtualDocumentProvider } from '../virtual-document/styled-virtual-document-provider'
+import { CSS_DIAGNOSTIC_CODE } from './css-diagnostic-code'
+import { ScssLanguageService } from './styles-language-services'
 
 export class CodeActionsFeature {
   public constructor(
@@ -14,7 +13,7 @@ export class CodeActionsFeature {
   ) {}
 
   public getSupportedCodeFixes(): number[] {
-    return [cssErrorCode]
+    return [CSS_DIAGNOSTIC_CODE]
   }
 
   public getCodeFixesAtPosition(

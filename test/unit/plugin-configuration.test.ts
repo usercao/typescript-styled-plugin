@@ -1,10 +1,10 @@
 import { assert, describe, it } from 'vitest'
 
-import { ConfigurationManager } from '../../src/configuration/configuration'
+import { PluginConfigurationManager } from '../../src/configuration/plugin-configuration'
 
-describe('ConfigurationManager', () => {
+describe('PluginConfigurationManager', () => {
   it('should merge lint settings while preserving defaults', () => {
-    const manager = new ConfigurationManager()
+    const manager = new PluginConfigurationManager()
     manager.updateFromPluginConfig({ lint: { unknownProperties: 'error' } })
 
     assert.deepEqual(manager.config.lint, {
@@ -14,7 +14,7 @@ describe('ConfigurationManager', () => {
   })
 
   it('should reset omitted settings to their defaults on configuration changes', () => {
-    const manager = new ConfigurationManager()
+    const manager = new PluginConfigurationManager()
     manager.updateFromPluginConfig({
       tags: ['sty'],
       validate: false,
@@ -35,13 +35,13 @@ describe('ConfigurationManager', () => {
   })
 
   it('should ignore malformed runtime configuration values', () => {
-    const manager = new ConfigurationManager()
+    const manager = new PluginConfigurationManager()
     manager.updateFromPluginConfig({
       tags: 'css',
       validate: 'false',
       lint: [],
       emmet: null,
-    } as unknown as Parameters<ConfigurationManager['updateFromPluginConfig']>[0])
+    } as unknown as Parameters<PluginConfigurationManager['updateFromPluginConfig']>[0])
 
     assert.deepEqual(manager.config.tags, [
       'styled',

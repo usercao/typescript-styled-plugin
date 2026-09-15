@@ -1,0 +1,1 @@
+export const CSS_DIAGNOSTIC_CODE = 9999

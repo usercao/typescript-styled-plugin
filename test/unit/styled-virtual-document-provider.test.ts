@@ -2,13 +2,13 @@ import type { TemplateContext } from 'typescript-template-language-service-decor
 import * as ts from 'typescript/lib/tsserverlibrary'
 import { assert, describe, it } from 'vitest'
 
-import { StyledVirtualDocumentFactory } from '../../src/virtual-document/provider'
+import { StyledVirtualDocumentProvider } from '../../src/virtual-document/styled-virtual-document-provider'
 
-describe('StyledVirtualDocumentFactory', () => {
+describe('StyledVirtualDocumentProvider', () => {
   it('should wrap normal templates in a root rule and map positions in both directions', () => {
     const context = createContext('css', 'color: red;\nmargin: 0;')
-    const factory = new StyledVirtualDocumentFactory(ts)
-    const document = factory.createVirtualDocument(context)
+    const provider = new StyledVirtualDocumentProvider(ts)
+    const document = provider.createVirtualDocument(context)
 
     assert.strictEqual(document.getText(), ':root{\ncolor: red;\nmargin: 0;\n}')
     assert.strictEqual(document.lineCount, 4)
@@ -26,39 +26,39 @@ describe('StyledVirtualDocumentFactory', () => {
 
   it('should wrap keyframes templates in a keyframes rule', () => {
     const context = createContext('keyframes', '0% { opacity: 0; }')
-    const factory = new StyledVirtualDocumentFactory(ts)
+    const provider = new StyledVirtualDocumentProvider(ts)
 
     assert.strictEqual(
-      factory.createVirtualDocument(context).getText(),
+      provider.createVirtualDocument(context).getText(),
       '@keyframes custom {\n0% { opacity: 0; }\n}',
     )
   })
 
   it('should only map the template body back from the virtual document', () => {
     const context = createContext('css', 'color: red;')
-    const factory = new StyledVirtualDocumentFactory(ts)
-    const wrapperLength = factory.getVirtualDocumentWrapper(context).length
+    const provider = new StyledVirtualDocumentProvider(ts)
+    const wrapperLength = provider.getVirtualDocumentWrapper(context).length
 
-    assert.strictEqual(factory.fromVirtualDocOffset(wrapperLength - 1, context), undefined)
-    assert.strictEqual(factory.fromVirtualDocOffset(wrapperLength, context), 0)
+    assert.strictEqual(provider.fromVirtualDocOffset(wrapperLength - 1, context), undefined)
+    assert.strictEqual(provider.fromVirtualDocOffset(wrapperLength, context), 0)
     assert.strictEqual(
-      factory.fromVirtualDocOffset(wrapperLength + context.text.length, context),
+      provider.fromVirtualDocOffset(wrapperLength + context.text.length, context),
       context.text.length,
     )
     assert.strictEqual(
-      factory.fromVirtualDocOffset(wrapperLength + context.text.length + 1, context),
+      provider.fromVirtualDocOffset(wrapperLength + context.text.length + 1, context),
       undefined,
     )
     assert.strictEqual(
-      factory.fromVirtualDocPosition({ line: 0, character: 0 }, context),
+      provider.fromVirtualDocPosition({ line: 0, character: 0 }, context),
       undefined,
     )
-    assert.deepEqual(factory.fromVirtualDocPosition({ line: 1, character: 0 }, context), {
+    assert.deepEqual(provider.fromVirtualDocPosition({ line: 1, character: 0 }, context), {
       line: 0,
       character: 0,
     })
     assert.strictEqual(
-      factory.fromVirtualDocPosition({ line: 2, character: 0 }, context),
+      provider.fromVirtualDocPosition({ line: 2, character: 0 }, context),
       undefined,
     )
   })

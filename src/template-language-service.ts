@@ -4,13 +4,12 @@
 // Original code forked from https://github.com/Quramy/ts-graphql-plugin
 
 import {
-  Logger,
   TemplateContext,
   TemplateLanguageService,
 } from 'typescript-template-language-service-decorator'
 import type * as ts from 'typescript/lib/tsserverlibrary'
 
-import { ConfigurationManager } from './configuration/configuration'
+import { PluginConfigurationManager } from './configuration/plugin-configuration'
 import { CodeActionsFeature } from './features/code-actions'
 import { CompletionsFeature } from './features/completions'
 import { DiagnosticsFeature } from './features/diagnostics'
@@ -19,12 +18,12 @@ import { HoverFeature } from './features/hover'
 import {
   CssLanguageService,
   DefaultEmmetCompletionProvider,
-  DefaultEmbeddedLanguageServiceFactory,
+  DefaultStylesLanguageServiceFactory,
   EmmetCompletionProvider,
-  EmbeddedLanguageServiceFactory,
+  StylesLanguageServiceFactory,
   ScssLanguageService,
-} from './features/language-service-factory'
-import { VirtualDocumentProvider } from './virtual-document/provider'
+} from './features/styles-language-services'
+import { VirtualDocumentProvider } from './virtual-document/styled-virtual-document-provider'
 
 export class StyledTemplateLanguageService implements TemplateLanguageService {
   private cssLanguageServiceInstance?: CssLanguageService
@@ -37,10 +36,9 @@ export class StyledTemplateLanguageService implements TemplateLanguageService {
 
   public constructor(
     private readonly typescript: typeof ts,
-    private readonly configurationManager: ConfigurationManager,
+    private readonly configurationManager: PluginConfigurationManager,
     private readonly virtualDocumentFactory: VirtualDocumentProvider,
-    _logger: Logger,
-    private readonly languageServiceFactory: EmbeddedLanguageServiceFactory = new DefaultEmbeddedLanguageServiceFactory(),
+    private readonly languageServiceFactory: StylesLanguageServiceFactory = new DefaultStylesLanguageServiceFactory(),
     private readonly emmetCompletionProvider: EmmetCompletionProvider = new DefaultEmmetCompletionProvider(),
   ) {
     configurationManager.onUpdatedConfig(() => {

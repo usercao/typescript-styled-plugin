@@ -2,13 +2,13 @@ import path from 'node:path'
 
 import { assert, describe, it } from 'vitest'
 
-import createServer from '../server-fixture'
-import { getFirstResponseOfType, openMockFile } from './_helpers'
+import createServer from '../tsserver-fixture'
+import { getFirstResponseOfType, openMockFile } from './tsserver-test-helpers'
 
 describe('Hover', () => {
   it('should return CSS documentation for a property inside a tagged template', async () => {
     const server = createServer()
-    const file = path.join(__dirname, '..', 'project-fixture', 'main.ts')
+    const file = path.join(__dirname, '..', 'styled-project-fixture', 'main.ts')
     openMockFile(server, file, 'const q = css`color: red;`')
     server.sendCommand('quickinfo', { file, line: 1, offset: 17 })
 

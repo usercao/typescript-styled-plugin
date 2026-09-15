@@ -2,8 +2,8 @@ import path from 'node:path'
 
 import { assert, describe, it } from 'vitest'
 
-import createServer from '../server-fixture'
-import { getFirstResponseOfType, openMockFile } from './_helpers'
+import createServer from '../tsserver-fixture'
+import { getFirstResponseOfType, openMockFile } from './tsserver-test-helpers'
 
 describe('Script kinds', () => {
   it.each([
@@ -15,7 +15,7 @@ describe('Script kinds', () => {
     'should provide CSS completions in %s',
     async (_name, fileName, scriptKind, source) => {
       const server = createServer()
-      const file = path.join(__dirname, '..', 'project-fixture', fileName)
+      const file = path.join(__dirname, '..', 'styled-project-fixture', fileName)
       openMockFile(server, file, source, scriptKind)
       server.sendCommand('completions', {
         file,

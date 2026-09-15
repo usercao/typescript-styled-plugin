@@ -16,9 +16,9 @@ export interface VirtualDocumentProvider {
   getVirtualDocumentWrapper(context: TemplateContext): string
 }
 
-export class StyledVirtualDocumentFactory implements VirtualDocumentProvider {
-  private static readonly wrapperPreRoot = ':root{\n'
-  private static readonly wrapperPreKeyframes = '@keyframes custom {\n'
+export class StyledVirtualDocumentProvider implements VirtualDocumentProvider {
+  private static readonly rootWrapper = ':root{\n'
+  private static readonly keyframesWrapper = '@keyframes custom {\n'
 
   public constructor(private readonly typescript: typeof ts) {}
 
@@ -37,10 +37,9 @@ export class StyledVirtualDocumentFactory implements VirtualDocumentProvider {
   ): ts.LineAndCharacter | undefined {
     const sourcePosition = { line: position.line - 1, character: position.character }
     const offset = context.toOffset(sourcePosition)
-    const mappedPosition = context.toPosition(offset)
     return offset >= 0 &&
       offset <= context.text.length &&
-      positionsEqual(sourcePosition, mappedPosition)
+      positionsEqual(sourcePosition, context.toPosition(offset))
       ? sourcePosition
       : undefined
   }
@@ -59,8 +58,8 @@ export class StyledVirtualDocumentFactory implements VirtualDocumentProvider {
     const tag =
       parent && this.typescript.isTaggedTemplateExpression(parent) ? parent.tag : undefined
     return tag && this.typescript.isIdentifier(tag) && tag.escapedText === 'keyframes'
-      ? StyledVirtualDocumentFactory.wrapperPreKeyframes
-      : StyledVirtualDocumentFactory.wrapperPreRoot
+      ? StyledVirtualDocumentProvider.keyframesWrapper
+      : StyledVirtualDocumentProvider.rootWrapper
   }
 }
 

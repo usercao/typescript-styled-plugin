@@ -1,4 +1,4 @@
-import type { TSServer, TSServerResponseMap } from '../server-fixture'
+import type { TSServer, TSServerResponseMap } from '../tsserver-fixture'
 
 export function openMockFile(
   server: TSServer,

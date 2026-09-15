@@ -1,7 +1,7 @@
 // @ts-check
 import { assert, describe, it } from 'vitest'
 
-import { getSubstitutions } from '../../src/template/substituter'
+import { getTemplateSubstitutions } from '../../src/template/template-substitutions'
 
 describe('substituter', () => {
   it('should replace property value with x', () => {
@@ -107,7 +107,9 @@ describe('substituter', () => {
     const value = ['color: ${', '  color', '};'].join('\n')
 
     assert.deepEqual(
-      getSubstitutions(value, [{ start: value.indexOf('${'), end: value.indexOf('}') + 1 }]),
+      getTemplateSubstitutions(value, [
+        { start: value.indexOf('${'), end: value.indexOf('}') + 1 },
+      ]),
       ['color: xx', 'xxxxxxx', 'x;'].join('\n'),
     )
   })
@@ -116,7 +118,9 @@ describe('substituter', () => {
     const value = ['color: ${', '  color', '};'].join('\r\n')
 
     assert.deepEqual(
-      getSubstitutions(value, [{ start: value.indexOf('${'), end: value.indexOf('}') + 1 }]),
+      getTemplateSubstitutions(value, [
+        { start: value.indexOf('${'), end: value.indexOf('}') + 1 },
+      ]),
       ['color: xx', 'xxxxxxx', 'x;'].join('\r\n'),
     )
   })
@@ -128,7 +132,7 @@ describe('substituter', () => {
     const secondStart = value.indexOf('${', firstEnd)
 
     assert.deepEqual(
-      getSubstitutions(value, [
+      getTemplateSubstitutions(value, [
         { start: firstStart, end: firstEnd },
         { start: secondStart, end: value.indexOf('}', secondStart) + 1 },
       ]),
@@ -198,7 +202,7 @@ describe('substituter', () => {
 })
 
 function performSubstitutions(value: string) {
-  return getSubstitutions(value, getSpans(value))
+  return getTemplateSubstitutions(value, getSpans(value))
 }
 
 function getSpans(value: string) {

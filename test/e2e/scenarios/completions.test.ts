@@ -2,10 +2,10 @@ import path from 'node:path'
 
 import { assert, describe, it } from 'vitest'
 
-import createServer from '../server-fixture'
-import { getFirstResponseOfType, openMockFile } from './_helpers'
+import createServer from '../tsserver-fixture'
+import { getFirstResponseOfType, openMockFile } from './tsserver-test-helpers'
 
-const mockFileName = path.join(__dirname, '..', 'project-fixture', 'main.ts')
+const mockFileName = path.join(__dirname, '..', 'styled-project-fixture', 'main.ts')
 
 const createServerWithMockFile = (fileContents: string) => {
   const server = createServer()
@@ -85,7 +85,7 @@ describe('Completions', () => {
     })
   })
 
-  it('should return completions after where placeholder is used as property', () => {
+  it('should return completions after a placeholder is used as a property', () => {
     const server = createServerWithMockFile('css`border: 1px solid ${"red"}; color:`')
     server.sendCommand('completions', { file: mockFileName, offset: 39, line: 1 })
 
@@ -97,7 +97,7 @@ describe('Completions', () => {
     })
   })
 
-  it('should return completions between were placeholders are used as properties', () => {
+  it('should return completions between placeholders used as properties', () => {
     const server = createServerWithMockFile(
       'css`boarder: 1px solid ${"red"}; color: ; margin: ${20}; `',
     )
@@ -194,7 +194,7 @@ describe('Completions', () => {
     })
   })
 
-  it('should return completions inside of nested selector xx', () => {
+  it('should return completions inside a nested selector', () => {
     const server = createServerWithMockFile(
       ['css`', '    color: red;', '    &:hover {', '        color:   ', '    }', '`'].join('\n'),
     )

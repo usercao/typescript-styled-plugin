@@ -3,10 +3,9 @@ import type * as ts from 'typescript/lib/tsserverlibrary'
 import * as vscode from 'vscode-languageserver-types'
 
 import { pluginIdentity } from '../tsserver/plugin-identity'
-import { VirtualDocumentProvider } from '../virtual-document/provider'
-import { ScssLanguageService } from './language-service-factory'
-
-const cssErrorCode = 9999
+import { VirtualDocumentProvider } from '../virtual-document/styled-virtual-document-provider'
+import { CSS_DIAGNOSTIC_CODE } from './css-diagnostic-code'
+import { ScssLanguageService } from './styles-language-services'
 
 export class DiagnosticsFeature {
   public constructor(
@@ -42,7 +41,7 @@ export class DiagnosticsFeature {
 
     const start = context.toOffset(startPosition)
     return {
-      code: typeof diagnostic.code === 'number' ? diagnostic.code : cssErrorCode,
+      code: typeof diagnostic.code === 'number' ? diagnostic.code : CSS_DIAGNOSTIC_CODE,
       messageText: toText(diagnostic.message),
       category: translateSeverity(this.typescript, diagnostic.severity),
       file: context.node.getSourceFile(),

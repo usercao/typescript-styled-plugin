@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Normalize test directories, fixture names, test filenames, and E2E test terminology.
+- Normalize source module paths and internal naming around the template language service, tsserver, configuration, virtual documents, and CSS features.
 - Remove obsolete top-level compatibility re-exports after migrating internal and public API imports to the feature modules.
 - Move the shared plugin identity into the tsserver module and remove the misleading `_config` module.
 - Split template, virtual-document, configuration, tsserver, and language-service features into focused modules with injectable CSS/SCSS service interfaces.

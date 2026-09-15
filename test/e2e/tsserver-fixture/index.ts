@@ -92,14 +92,14 @@ export interface TSServerOptions {
 }
 
 export class TSServer {
-  private readonly _exitPromise: Promise<number | null>
-  private _isClosed = false
-  private _pendingResponses = 0
-  private _seq = 0
-  private readonly _server
+  private readonly exitPromise: Promise<number | null>
+  private isClosed = false
+  private pendingResponses = 0
+  private sequence = 0
+  private readonly server
   public readonly responses: TSServerProtocolResponse[] = []
 
-  constructor(project = 'project-fixture', options: TSServerOptions = {}) {
+  constructor(project = 'styled-project-fixture', options: TSServerOptions = {}) {
     const typescriptPackage =
       options.typescriptPackage || process.env.TSSERVER_TYPESCRIPT_PACKAGE || 'typescript'
     const logfile = path.join(__dirname, 'log.txt')
@@ -123,7 +123,7 @@ export class TSServer {
         stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
       },
     )
-    this._exitPromise = new Promise((resolve, reject) => {
+    this.exitPromise = new Promise((resolve, reject) => {
       server.on('exit', (code) => resolve(code))
       server.on('error', (reason) => reject(reason))
     })
@@ -147,7 +147,7 @@ export class TSServer {
 
           const line = output.slice(0, lineEnd)
           output = output.slice(lineEnd + 1)
-          this._handleMessage(line)
+          this.handleMessage(line)
           continue
         }
 
@@ -163,24 +163,24 @@ export class TSServer {
           return
         }
 
-        this._handleMessage(output.slice(headerEnd + 4, messageEnd))
+        this.handleMessage(output.slice(headerEnd + 4, messageEnd))
         output = output.slice(messageEnd)
       }
     })
 
-    this._server = { stdin, stdout }
+    this.server = { stdin, stdout }
   }
 
   send(command: { command: string; arguments: unknown }, responseExpected: boolean) {
-    if (this._isClosed) {
+    if (this.isClosed) {
       throw new Error('server is closed')
     }
     if (responseExpected) {
-      ++this._pendingResponses
+      ++this.pendingResponses
     }
-    const seq = ++this._seq
+    const seq = ++this.sequence
     const req = JSON.stringify({ seq, type: 'request', ...command }) + '\n'
-    this._server.stdin.write(req)
+    this.server.stdin.write(req)
   }
 
   sendCommand(name: string, args: unknown) {
@@ -188,20 +188,20 @@ export class TSServer {
   }
 
   close() {
-    if (!this._isClosed) {
-      this._isClosed = true
-      if (this._pendingResponses <= 0) {
-        this._shutdown()
+    if (!this.isClosed) {
+      this.isClosed = true
+      if (this.pendingResponses <= 0) {
+        this.shutdown()
       }
     }
-    return this._exitPromise
+    return this.exitPromise
   }
 
-  _shutdown() {
-    this._server.stdin.end()
+  private shutdown() {
+    this.server.stdin.end()
   }
 
-  private _handleMessage(message: string) {
+  private handleMessage(message: string) {
     try {
       const result: unknown = JSON.parse(message)
       if (!isTSServerResponse(result)) {
@@ -209,9 +209,9 @@ export class TSServer {
       }
 
       this.responses.push(result)
-      --this._pendingResponses
-      if (this._pendingResponses <= 0 && this._isClosed) {
-        this._shutdown()
+      --this.pendingResponses
+      if (this.pendingResponses <= 0 && this.isClosed) {
+        this.shutdown()
       }
     } catch {
       // Ignore non-protocol output from tsserver.

@@ -1,18 +1,18 @@
-import type { Logger, TemplateContext } from 'typescript-template-language-service-decorator'
+import type { TemplateContext } from 'typescript-template-language-service-decorator'
 import * as ts from 'typescript/lib/tsserverlibrary'
 import { assert, describe, it } from 'vitest'
 
-import { StyledTemplateLanguageService } from '../../src/_language-service'
 import {
-  ConfigurationManager,
+  PluginConfigurationManager,
   StyledPluginConfiguration,
-} from '../../src/configuration/configuration'
+} from '../../src/configuration/plugin-configuration'
 import {
   CssLanguageService,
-  EmbeddedLanguageServiceFactory,
+  StylesLanguageServiceFactory,
   ScssLanguageService,
-} from '../../src/features/language-service-factory'
-import { StyledVirtualDocumentFactory } from '../../src/virtual-document/provider'
+} from '../../src/features/styles-language-services'
+import { StyledTemplateLanguageService } from '../../src/template-language-service'
+import { StyledVirtualDocumentProvider } from '../../src/virtual-document/styled-virtual-document-provider'
 
 describe('StyledTemplateLanguageService', () => {
   it('should convert CSS completion items to TypeScript completion entries', () => {
@@ -52,13 +52,12 @@ describe('StyledTemplateLanguageService', () => {
   })
 
   it('should use injected language services and reconfigure them on updates', () => {
-    const manager = new ConfigurationManager()
+    const manager = new PluginConfigurationManager()
     const factory = createFakeLanguageServiceFactory()
     const service = new StyledTemplateLanguageService(
       ts,
       manager,
-      new StyledVirtualDocumentFactory(ts),
-      { log() {} } satisfies Logger,
+      new StyledVirtualDocumentProvider(ts),
       factory,
     )
 
@@ -75,13 +74,12 @@ describe('StyledTemplateLanguageService', () => {
 function createService() {
   return new StyledTemplateLanguageService(
     ts,
-    new ConfigurationManager(),
-    new StyledVirtualDocumentFactory(ts),
-    { log() {} } satisfies Logger,
+    new PluginConfigurationManager(),
+    new StyledVirtualDocumentProvider(ts),
   )
 }
 
-function createFakeLanguageServiceFactory(): EmbeddedLanguageServiceFactory & {
+function createFakeLanguageServiceFactory(): StylesLanguageServiceFactory & {
   cssConfigurations: StyledPluginConfiguration[]
   scssConfigurations: StyledPluginConfiguration[]
 } {

@@ -2,10 +2,10 @@ import path from 'node:path'
 
 import { assert, describe, it } from 'vitest'
 
-import createServer from '../server-fixture'
-import { getFirstResponseOfType, openMockFile } from './_helpers'
+import createServer from '../tsserver-fixture'
+import { getFirstResponseOfType, openMockFile } from './tsserver-test-helpers'
 
-const createMockFileForServer = (fileContents: string, project = 'project-fixture') => {
+const createMockFileForServer = (fileContents: string, project = 'styled-project-fixture') => {
   const server = createServer(project)
   const mockFileName = path.join(__dirname, '..', project, 'main.ts')
   openMockFile(server, mockFileName, fileContents)
@@ -13,10 +13,10 @@ const createMockFileForServer = (fileContents: string, project = 'project-fixtur
 }
 
 describe('Emmet Completions', () => {
-  it('shouldnt return emmet property completions when disabled', async () => {
+  it('should not return Emmet property completions when disabled', async () => {
     const { server, mockFileName } = createMockFileForServer(
       'const q = css`m10-20`',
-      'disabled-emmet-project-fixture',
+      'emmet-disabled-project-fixture',
     )
     server.sendCommand('completions', { file: mockFileName, offset: 21, line: 1 })
 
@@ -25,7 +25,7 @@ describe('Emmet Completions', () => {
     assert.isTrue(completionsResponse.body.every((item) => item.name !== 'margin: 10px 20px;'))
   })
 
-  it('should return emmet property completions for single line string', async () => {
+  it('should return Emmet property completions for a single-line string', async () => {
     const { server, mockFileName } = createMockFileForServer('const q = css`m10-20`')
     server.sendCommand('completions', { file: mockFileName, offset: 21, line: 1 })
 
@@ -34,7 +34,7 @@ describe('Emmet Completions', () => {
     assert.isTrue(completionsResponse.body.some((item) => item.name === 'margin: 10px 20px;'))
   })
 
-  it('should return emmet property completions for multiline string', async () => {
+  it('should return Emmet property completions for a multiline string', async () => {
     const { server, mockFileName } = createMockFileForServer(
       ['const q = css`', 'm10-20', '`'].join('\n'),
     )
@@ -45,7 +45,7 @@ describe('Emmet Completions', () => {
     assert.isTrue(completionsResponse.body.some((item) => item.name === 'margin: 10px 20px;'))
   })
 
-  it('should return emmet property completions for nested selector', async () => {
+  it('should return Emmet property completions for a nested selector', async () => {
     const { server, mockFileName } = createMockFileForServer(
       'const q = css`position: relative; &:hover { m10-20 }`',
     )
@@ -68,7 +68,7 @@ describe('Emmet Completions', () => {
     assert.isTrue(completionsResponse.body.some((item) => item.name === 'margin: 10px 20px;'))
   })
 
-  it('should return emmet completions after where placeholder is used as property', async () => {
+  it('should return Emmet completions after a placeholder is used as a property', async () => {
     const { server, mockFileName } = createMockFileForServer(
       'css`border: 1px solid ${"red"}; m10-20`',
     )
@@ -79,7 +79,7 @@ describe('Emmet Completions', () => {
     assert.isTrue(completionsResponse.body.some((item) => item.name === 'margin: 10px 20px;'))
   })
 
-  it('should return emmet completions between were placeholders are used as properties', async () => {
+  it('should return Emmet completions between placeholders used as properties', async () => {
     const { server, mockFileName } = createMockFileForServer(
       'css`boarder: 1px solid ${"red"}; color: #12; margin: ${20}; `',
     )
@@ -135,7 +135,7 @@ describe('Emmet Completions', () => {
     assert.isTrue(completionsResponse.body.some((item) => item.name === '#121212'))
   })
 
-  it('should return emmet completions inside of nested selector xx', async () => {
+  it('should return Emmet completions inside a nested selector', async () => {
     const { server, mockFileName } = createMockFileForServer(
       ['css`', '    color: red;', '    &:hover {', '        color: #12  ', '    }', '`'].join('\n'),
     )

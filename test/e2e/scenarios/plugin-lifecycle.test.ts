@@ -2,8 +2,8 @@ import path from 'node:path'
 
 import { assert, describe, it } from 'vitest'
 
-import createServer from '../server-fixture'
-import { getFirstResponseOfType, openMockFile } from './_helpers'
+import createServer from '../tsserver-fixture'
+import { getFirstResponseOfType, openMockFile } from './tsserver-test-helpers'
 
 const cssDiagnosticCode = 9999
 
@@ -13,8 +13,8 @@ function getCompletions(server: ReturnType<typeof createServer>, file: string, o
 
 describe('Plugin lifecycle', () => {
   it('should remain responsive when the configured plugin cannot be loaded', async () => {
-    const server = createServer('missing-plugin-project-fixture')
-    const file = path.join(__dirname, '..', 'missing-plugin-project-fixture', 'main.ts')
+    const server = createServer('plugin-missing-project-fixture')
+    const file = path.join(__dirname, '..', 'plugin-missing-project-fixture', 'main.ts')
     openMockFile(server, file, 'const value = 1')
     getCompletions(server, file, 16)
 
@@ -24,7 +24,7 @@ describe('Plugin lifecycle', () => {
 
   it('should ignore malformed plugin configuration without crashing tsserver', async () => {
     const server = createServer()
-    const file = path.join(__dirname, '..', 'project-fixture', 'main.ts')
+    const file = path.join(__dirname, '..', 'styled-project-fixture', 'main.ts')
     openMockFile(server, file, 'const q = css`color:`')
     server.sendCommand('configurePlugin', {
       pluginName: '@styled/typescript-styled-plugin',
@@ -39,7 +39,7 @@ describe('Plugin lifecycle', () => {
 
   it('should apply updated tags without returning cached completions from the old configuration', async () => {
     const server = createServer()
-    const file = path.join(__dirname, '..', 'project-fixture', 'main.ts')
+    const file = path.join(__dirname, '..', 'styled-project-fixture', 'main.ts')
     openMockFile(server, file, 'const q = sty`color:`')
     getCompletions(server, file, 21)
     server.sendCommand('configurePlugin', {
@@ -56,8 +56,10 @@ describe('Plugin lifecycle', () => {
   })
 
   it('should leave unsupported TypeScript hosts functional without CSS diagnostics', async () => {
-    const server = createServer('project-fixture', { typescriptPackage: 'typescript-legacy' })
-    const file = path.join(__dirname, '..', 'project-fixture', 'main.ts')
+    const server = createServer('styled-project-fixture', {
+      typescriptPackage: 'typescript-legacy',
+    })
+    const file = path.join(__dirname, '..', 'styled-project-fixture', 'main.ts')
     openMockFile(server, file, 'const q = css`boarder: 1px solid black;`')
     server.sendCommand('semanticDiagnosticsSync', { file })
 

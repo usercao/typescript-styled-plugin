@@ -23,7 +23,7 @@ export type ScssLanguageService = Pick<
   | 'getFoldingRanges'
 >
 
-export interface EmbeddedLanguageServiceFactory {
+export interface StylesLanguageServiceFactory {
   createCssLanguageService(): CssLanguageService
   createScssLanguageService(): ScssLanguageService
 }
@@ -36,7 +36,7 @@ export interface EmmetCompletionProvider {
   ): vscode.CompletionList | undefined
 }
 
-export class DefaultEmbeddedLanguageServiceFactory implements EmbeddedLanguageServiceFactory {
+export class DefaultStylesLanguageServiceFactory implements StylesLanguageServiceFactory {
   public createCssLanguageService(): CssLanguageService {
     return getCSSLanguageService()
   }

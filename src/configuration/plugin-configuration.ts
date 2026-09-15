@@ -8,49 +8,45 @@ export interface StyledPluginConfiguration {
   readonly emmet: Readonly<Record<string, unknown>>
 }
 
-export class ConfigurationManager {
+export class PluginConfigurationManager {
   private static readonly defaultConfiguration: StyledPluginConfiguration = {
     tags: ['styled', 'css', 'extend', 'injectGlobal', 'createGlobalStyle', 'keyframes'],
     validate: true,
-    lint: {
-      emptyRules: 'ignore',
-    },
+    lint: { emptyRules: 'ignore' },
     emmet: {},
   }
 
-  private readonly configUpdatedListeners = new Set<() => void>()
+  private readonly updateListeners = new Set<() => void>()
+  private configuration: StyledPluginConfiguration = PluginConfigurationManager.defaultConfiguration
 
   public get config(): StyledPluginConfiguration {
     return this.configuration
   }
-  private configuration: StyledPluginConfiguration = ConfigurationManager.defaultConfiguration
 
   public updateFromPluginConfig(config: Partial<StyledPluginConfiguration>) {
     const tags = isStringArray(config.tags)
       ? config.tags
-      : ConfigurationManager.defaultConfiguration.tags
-    const lint = {
-      ...ConfigurationManager.defaultConfiguration.lint,
-      ...toRecord(config.lint),
-    }
-
+      : PluginConfigurationManager.defaultConfiguration.tags
     this.configuration = {
       tags,
       validate:
         typeof config.validate === 'boolean'
           ? config.validate
-          : ConfigurationManager.defaultConfiguration.validate,
-      lint,
+          : PluginConfigurationManager.defaultConfiguration.validate,
+      lint: {
+        ...PluginConfigurationManager.defaultConfiguration.lint,
+        ...toRecord(config.lint),
+      },
       emmet: toRecord(config.emmet),
     }
 
-    for (const listener of this.configUpdatedListeners) {
+    for (const listener of this.updateListeners) {
       listener()
     }
   }
 
   public onUpdatedConfig(listener: () => void) {
-    this.configUpdatedListeners.add(listener)
+    this.updateListeners.add(listener)
   }
 }
 

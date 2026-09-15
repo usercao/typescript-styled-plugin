@@ -2,17 +2,17 @@ import path from 'node:path'
 
 import { assert, describe, it } from 'vitest'
 
-import createServer from '../server-fixture'
-import { getFirstResponseOfType, getResponsesOfType, openMockFile } from './_helpers'
+import createServer from '../tsserver-fixture'
+import { getFirstResponseOfType, getResponsesOfType, openMockFile } from './tsserver-test-helpers'
 
-const mockFileName = path.join(__dirname, '..', 'project-fixture', 'main.ts')
+const fixtureFileName = path.join(__dirname, '..', 'styled-project-fixture', 'main.ts')
 
-describe('QuickFix', () => {
-  it('should return quickFix for misspelled properties fooa', () => {
+describe('Code fixes', () => {
+  it('should return a code fix for a misspelled property', () => {
     const server = createServer()
-    openMockFile(server, mockFileName, 'const q = css`boarder: 1px solid black;`')
+    openMockFile(server, fixtureFileName, 'const q = css`boarder: 1px solid black;`')
     server.sendCommand('getCodeFixes', {
-      file: mockFileName,
+      file: fixtureFileName,
       startLine: 1,
       startOffset: 16,
       endLine: 1,
@@ -28,11 +28,11 @@ describe('QuickFix', () => {
     })
   })
 
-  it('should not return quickFixes for correctly spelled properties', () => {
+  it('should not return code fixes for correctly spelled properties', () => {
     const server = createServer()
-    openMockFile(server, mockFileName, 'const q = css`border: 1px solid black;`')
+    openMockFile(server, fixtureFileName, 'const q = css`border: 1px solid black;`')
     server.sendCommand('getCodeFixes', {
-      file: mockFileName,
+      file: fixtureFileName,
       startLine: 1,
       startOffset: 16,
       endLine: 1,
@@ -47,7 +47,7 @@ describe('QuickFix', () => {
     })
   })
 
-  it('should map a quickFix after a multiline interpolation to the source file', () => {
+  it('should map a code fix after a multiline interpolation to the source file', () => {
     const source = [
       'function css(strings: TemplateStringsArray, ...values: unknown[]) { return ""; }',
       'const q = css`',
@@ -58,9 +58,9 @@ describe('QuickFix', () => {
       '`',
     ].join('\n')
     const server = createServer()
-    openMockFile(server, mockFileName, source)
+    openMockFile(server, fixtureFileName, source)
     server.sendCommand('getCodeFixes', {
-      file: mockFileName,
+      file: fixtureFileName,
       startLine: 6,
       startOffset: 3,
       endLine: 6,
@@ -78,7 +78,7 @@ describe('QuickFix', () => {
       }
       assert.deepEqual(fix.changes, [
         {
-          fileName: mockFileName,
+          fileName: fixtureFileName,
           textChanges: [
             {
               newText: 'border',
@@ -91,11 +91,11 @@ describe('QuickFix', () => {
     })
   })
 
-  it('should only return spelling quickFix when range includes misspelled property', () => {
+  it('should only return a spelling code fix when the range includes the misspelled property', () => {
     const server = createServer()
-    openMockFile(server, mockFileName, 'const q = css`boarder: 1px solid black;`')
+    openMockFile(server, fixtureFileName, 'const q = css`boarder: 1px solid black;`')
     server.sendCommand('getCodeFixes', {
-      file: mockFileName,
+      file: fixtureFileName,
       startLine: 1,
       startOffset: 14,
       endLine: 1,
@@ -104,7 +104,7 @@ describe('QuickFix', () => {
     })
 
     server.sendCommand('getCodeFixes', {
-      file: mockFileName,
+      file: fixtureFileName,
       startLine: 1,
       startOffset: 22,
       endLine: 1,

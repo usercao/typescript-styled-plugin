@@ -3,13 +3,13 @@ import type * as ts from 'typescript/lib/tsserverlibrary'
 import { TextDocument } from 'vscode-languageserver-textdocument'
 import * as vscode from 'vscode-languageserver-types'
 
-import { StyledPluginConfiguration } from '../configuration/configuration'
-import { VirtualDocumentProvider } from '../virtual-document/provider'
+import { StyledPluginConfiguration } from '../configuration/plugin-configuration'
+import { VirtualDocumentProvider } from '../virtual-document/styled-virtual-document-provider'
 import {
   CssLanguageService,
   EmmetCompletionProvider,
   ScssLanguageService,
-} from './language-service-factory'
+} from './styles-language-services'
 
 const emptyCompletionList: vscode.CompletionList = {
   items: [],

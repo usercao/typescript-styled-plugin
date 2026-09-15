@@ -2,14 +2,14 @@ import path from 'node:path'
 
 import { assert, describe, it } from 'vitest'
 
-import createServer from '../server-fixture'
-import { getFirstResponseOfType, openMockFile } from './_helpers'
+import createServer from '../tsserver-fixture'
+import { getFirstResponseOfType, openMockFile } from './tsserver-test-helpers'
 
-const mockFileName = path.join(__dirname, '..', 'project-fixture', 'main.ts')
+const mockFileName = path.join(__dirname, '..', 'styled-project-fixture', 'main.ts')
 
-describe('OutliningSpans', () => {
-  it('should return basic css outlining spans', async () => {
-    const spans = await getOutlingSpansForMockFile(
+describe('Outlining spans', () => {
+  it('should return basic CSS outlining spans', async () => {
+    const spans = await getOutliningSpansForMockFile(
       ['const q = css`', 'a {', 'color: red;', '}', 'div {', '', '}', '`'].join('\n'),
     )
 
@@ -25,7 +25,7 @@ describe('OutliningSpans', () => {
   })
 })
 
-function getOutlingSpansForMockFile(contents: string) {
+function getOutliningSpansForMockFile(contents: string) {
   const server = createServer()
   openMockFile(server, mockFileName, contents)
   server.sendCommand('getOutliningSpans', { file: mockFileName })

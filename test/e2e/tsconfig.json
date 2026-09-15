@@ -1,5 +1,5 @@
 {
   "extends": "../../tsconfig.json",
-  "include": ["server-fixture", "tests"],
+  "include": ["tsserver-fixture", "scenarios"],
   "exclude": ["../../lib", "../../node_modules", "../../test-workspace"]
 }

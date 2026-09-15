@@ -402,17 +402,12 @@ yarn lint
 
 Use `yarn format` to apply the project formatting rules and `yarn lint:fix` to apply safe lint fixes.
 
-The root Yarn workspace also installs the end-to-end test dependencies.
+The root Yarn workspace also installs the end-to-end test dependencies. Unit tests live in `test/unit`; tsserver integration tests and their fixtures live in `test/e2e`.
+
+Run all tests:
 
 ```bash
-yarn install --immutable
-```
-
-and then navigate back to the project root and run the end to end tests with the `e2e` script:
-
-```bash
-cd ..
-yarn e2e
+yarn test
 ```
 
 You can submit bug fixes and features through [pull requests](https://help.github.com/articles/about-pull-requests/). To get started, first checkout a new feature branch on your local repo:

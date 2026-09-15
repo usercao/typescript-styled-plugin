@@ -5,8 +5,8 @@ export default defineConfig({
     environment: 'node',
     fileParallelism: false,
     globals: true,
-    exclude: ['e2e/tests/_helpers.js'],
-    include: ['src/test/**/*.test.ts', 'e2e/tests/**/*.js'],
+    exclude: ['test/e2e/tests/_helpers.js'],
+    include: ['test/unit/**/*.test.ts', 'test/e2e/tests/**/*.js'],
     testTimeout: 10_000,
   },
 })

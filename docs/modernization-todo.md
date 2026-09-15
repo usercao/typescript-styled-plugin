@@ -19,7 +19,7 @@
 - [x] 入口为 `src/index.ts`，以 `export =` 导出 TypeScript Server Plugin 工厂；`src/api.ts` 另提供可被其他库消费的 API。
 - [x] 核心流程为 `StyledPlugin` -> `typescript-template-language-service-decorator` -> `StyledTemplateLanguageService`；后者将标签模板映射为虚拟 SCSS 文档，再调用 CSS/SCSS 语言服务。
 - [x] 插值替换、虚拟文档映射、TypeScript API 转换和 CSS 功能实现目前分散于少量源文件；这是可逐步拆分的良好起点。
-- [x] 已有 Mocha/Chai 单测和通过 `tsserver` 协议运行的端到端测试，但断言包含 CSS 补全项目总数等易随上游数据更新而变化的值。
+- [x] 已有位于 `test/unit` 的单元测试和位于 `test/e2e` 的 `tsserver` 集成测试，但断言包含 CSS 补全项目总数等易随上游数据更新而变化的值。
 - [x] 已切换到 Yarn 4 并使用 `node-modules` 链接器；CI 已使用 Node 24、Corepack、`yarn install --immutable` 和当前 GitHub Actions，但仍缺少统一的 `check`、`test`、发布校验和依赖安全检查入口。
 - [x] 当前根目录尚未安装依赖；`npm outdated` 的 `MISSING` 是本地 `node_modules` 缺失，不是升级失败。
 
@@ -39,7 +39,7 @@
 ## 阶段 0：基线与治理
 
 - [x] 已声明 Yarn 4 与最低 Node 24.20.0 版本；后续可补充 `.nvmrc` 或等效版本文件以方便本地切换。
-- [ ] 使用支持的 Node LTS 执行 `yarn install --immutable`，确认根 workspace（包含 `e2e` 夹具）能从零安装。
+- [ ] 使用支持的 Node LTS 执行 `yarn install --immutable`，确认根 workspace（包含 `test/e2e` 夹具）能从零安装。
 - [ ] 已建立 `format`、`format:check`、`lint`、`lint:fix`、`compile`、`unit` 与 `e2e` 命令；仍需增加 `typecheck`、`test` 和串联所有发布前检查的 `verify`。
 - [ ] 执行并记录当前基线：Node/npm/TypeScript 版本、`npm audit`、构建产物文件列表、单测/端到端测试结果、npm 包体积和 `npm pack --dry-run` 清单。
 - [ ] 确认 npm 发布权限、包名所有权、双因素认证与维护者名单；发布前不要只依赖历史仓库权限。

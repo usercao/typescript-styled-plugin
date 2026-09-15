@@ -9,5 +9,5 @@ log.txt
 docs/**
 
 test-workspace
-e2e
+test
 *.test.js

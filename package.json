@@ -19,7 +19,7 @@
     "url": "https://github.com/styled-components/typescript-styled-plugin.git"
   },
   "workspaces": [
-    "e2e"
+    "test/e2e"
   ],
   "files": [
     "lib"
@@ -33,8 +33,8 @@
     "lint": "oxlint .",
     "lint:fix": "oxlint --fix .",
     "test": "yarn test:unit && yarn test:e2e",
-    "test:e2e": "yarn compile && vitest run e2e/tests",
-    "test:unit": "vitest run src/test",
+    "test:e2e": "yarn compile && vitest run test/e2e/tests",
+    "test:unit": "vitest run test/unit",
     "unit": "yarn test:unit",
     "watch:compile": "tsc --watch -p ."
   },

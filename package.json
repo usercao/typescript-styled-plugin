@@ -20,28 +20,35 @@
     "url": "https://github.com/styled-components/typescript-styled-plugin/issues"
   },
   "dependencies": {
-    "@vscode/emmet-helper": "^2.9.2",
+    "@vscode/emmet-helper": "2.9.2",
     "typescript-template-language-service-decorator": "^2.3.2",
-    "vscode-css-languageservice": "^6.2.11",
-    "vscode-languageserver-textdocument": "^1.0.11",
-    "vscode-languageserver-types": "^3.17.5"
+    "vscode-css-languageservice": "6.2.11",
+    "vscode-languageserver-textdocument": "1.0.11",
+    "vscode-languageserver-types": "3.17.5"
   },
   "files": [
     "lib"
   ],
+  "workspaces": [
+    "e2e"
+  ],
+  "resolutions": {
+    "vscode-languageserver-textdocument": "1.0.11",
+    "vscode-languageserver-types": "3.17.5"
+  },
   "devDependencies": {
-    "@types/chai": "^4.3.4",
-    "@types/mocha": "^10.0.1",
-    "@types/node": "^18.11.9",
-    "@typescript-eslint/eslint-plugin": "^6.14.0",
-    "@typescript-eslint/parser": "^6.14.0",
-    "chai": "^4.3.7",
-    "eslint": "^8.55.0",
-    "eslint-plugin-prettier": "^5.0.1",
-    "glob": "^8.0.3",
-    "mocha": "^10.1.0",
-    "prettier": "^3.1.1",
-    "typescript": "^5.3.3"
+    "@types/chai": "4.3.4",
+    "@types/mocha": "10.0.1",
+    "@types/node": "18.11.9",
+    "@typescript-eslint/eslint-plugin": "6.14.0",
+    "@typescript-eslint/parser": "6.14.0",
+    "chai": "4.3.7",
+    "eslint": "8.55.0",
+    "eslint-plugin-prettier": "5.0.1",
+    "glob": "8.0.3",
+    "mocha": "10.1.0",
+    "prettier": "3.1.1",
+    "typescript": "5.3.3"
   },
   "scripts": {
     "compile": "tsc -p .",
@@ -49,5 +56,9 @@
     "e2e": "mocha e2e/tests --slow 2000 --timeout 10000",
     "lint": "eslint src",
     "unit": "mocha ./lib/test"
-  }
+  },
+  "engines": {
+    "node": ">=24.20.0"
+  },
+  "packageManager": "yarn@4.18.0"
 }

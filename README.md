@@ -384,26 +384,26 @@ cd typescript-styled-plugin
 Then install dev dependencies:
 
 ```bash
-npm install
+yarn install --immutable
 ```
 
 The plugin is written in [TypeScript](http://www.typescriptlang.org). The source code is in the `src/` directory with the compiled JavaScript output to the `lib/` directory. Kick off a build using the `compile` script:
 
 ```bash
-npm run compile
+yarn compile
 ```
 
-switch to `e2` to install or update test dependencies:
+The root Yarn workspace also installs the end-to-end test dependencies.
 
 ```bash
-(cd e2e && npm install)
+yarn install --immutable
 ```
 
 and then navigate back to the project root and run the end to end tests with the `e2e` script:
 
 ```bash
 cd ..
-npm run e2e
+yarn e2e
 ```
 
 You can submit bug fixes and features through [pull requests](https://help.github.com/articles/about-pull-requests/). To get started, first checkout a new feature branch on your local repo:

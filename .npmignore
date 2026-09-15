@@ -5,6 +5,8 @@ node_modules/
 .DS_Store
 *.map
 log.txt
+.yarn/*
+docs/**
 
 test-workspace
 e2e

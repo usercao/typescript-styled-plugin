@@ -13,54 +13,60 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
-              uses: actions/checkout@v2
+              uses: actions/checkout@v5
             - name: Install Node.js
-              uses: actions/setup-node@v3
+              uses: actions/setup-node@v5
               with:
-                  node-version: 18
-            - run: npm install
+                  node-version: 24.20.0
+                  cache: yarn
+            - run: corepack enable
+            - run: yarn install --immutable
             - name: Linting
-              run: npm run lint
+              run: yarn lint
     compile:
         name: Compile
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
-              uses: actions/checkout@v2
+              uses: actions/checkout@v5
             - name: Install Node.js
-              uses: actions/setup-node@v3
+              uses: actions/setup-node@v5
               with:
-                  node-version: 18
-            - run: npm install
+                  node-version: 24.20.0
+                  cache: yarn
+            - run: corepack enable
+            - run: yarn install --immutable
             - name: Compiling
-              run: npm run compile
+              run: yarn compile
     unit:
         name: Unit Tests
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
-              uses: actions/checkout@v2
+              uses: actions/checkout@v5
             - name: Install Node.js
-              uses: actions/setup-node@v3
+              uses: actions/setup-node@v5
               with:
-                  node-version: 18
-            - run: npm install
+                  node-version: 24.20.0
+                  cache: yarn
+            - run: corepack enable
+            - run: yarn install --immutable
             - name: Compiling
-              run: npm run compile
-            - run: npm run unit
+              run: yarn compile
+            - run: yarn unit
     e2e:
         name: E2E Tests
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
-              uses: actions/checkout@v2
+              uses: actions/checkout@v5
             - name: Install Node.js
-              uses: actions/setup-node@v3
+              uses: actions/setup-node@v5
               with:
-                  node-version: 18
-            - run: npm install
-            - run: npm install
-              working-directory: ./e2e
+                  node-version: 24.20.0
+                  cache: yarn
+            - run: corepack enable
+            - run: yarn install --immutable
             - name: Compiling
-              run: npm run compile
-            - run: npm run e2e
+              run: yarn compile
+            - run: yarn e2e

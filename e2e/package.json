@@ -14,7 +14,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "typescript": "^5.3.3",
-    "@styled/typescript-styled-plugin": "file:./.."
-  }
+    "@styled/typescript-styled-plugin": "workspace:*",
+    "typescript": "^5.3.3"
+  },
+  "packageManager": "yarn@4.18.0"
 }

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Move the shared plugin identity into the tsserver module and remove the misleading `_config` module.
+- Split template, virtual-document, configuration, tsserver, and language-service features into focused modules with injectable CSS/SCSS service interfaces.
 - Remove redundant `unit` and `e2e` script aliases.
 - Move TypeScript aliases used only by tsserver integration tests into the E2E workspace.
 - Remove the minimum-TypeScript test alias and CI matrix entry; document the TypeScript 6.0.2 minimum requirement before installation.

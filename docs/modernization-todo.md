@@ -45,8 +45,8 @@
 - [x] 以 ESM `"module.exports"` 导出同步插件工厂；通过 Node 24.11+ 的 `require(ESM)` 互操作供 tsserver 加载。
 - [x] 保持可复用逻辑位于具名 ESM 模块，主入口仅负责 tsserver 工厂适配。
 - [x] 以“虚拟 CSS 文档 + 源码偏移映射”为核心内部契约；包装区映射统一视为无效并由调用方丢弃。
-- [ ] 按功能拆分实现：`template/`、`virtual-document/`、`features/completions`、`features/diagnostics`、`features/hover`、`features/code-actions`、`features/folding`、`configuration/`、`tsserver/`。
-- [ ] 为每个功能注入窄接口（例如 CSS language service 的 `Pick` 类型），使单测不依赖真实 tsserver 进程。
+- [x] 按功能拆分实现：`template/`、`virtual-document/`、`features/completions`、`features/diagnostics`、`features/hover`、`features/code-actions`、`features/folding`、`configuration/`、`tsserver/`。
+- [x] 为每个功能注入窄接口（例如 CSS language service 的 `Pick` 类型），使单测不依赖真实 tsserver 进程。
 - [x] 保留端到端 tsserver 测试作为宿主契约测试；若未来提供 VS Code 扩展，再新增独立包或独立仓库，不把 `vscode` 加进本插件的生产依赖。
 
 ## 阶段 0：基线与治理

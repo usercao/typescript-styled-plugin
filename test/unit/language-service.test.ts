@@ -2,9 +2,14 @@ import type { Logger, TemplateContext } from 'typescript-template-language-servi
 import * as ts from 'typescript/lib/tsserverlibrary'
 import { assert, describe, it } from 'vitest'
 
-import { ConfigurationManager } from '../../src/_configuration'
+import { ConfigurationManager, StyledPluginConfiguration } from '../../src/_configuration'
 import { StyledTemplateLanguageService } from '../../src/_language-service'
 import { StyledVirtualDocumentFactory } from '../../src/_virtual-document-provider'
+import {
+  CssLanguageService,
+  EmbeddedLanguageServiceFactory,
+  ScssLanguageService,
+} from '../../src/features/language-service-factory'
 
 describe('StyledTemplateLanguageService', () => {
   it('should convert CSS completion items to TypeScript completion entries', () => {
@@ -42,6 +47,26 @@ describe('StyledTemplateLanguageService', () => {
     assert.deepEqual(spans[0]?.textSpan, { start: 0, length: 4 })
     assert.deepEqual(spans[1]?.textSpan, { start: 20, length: 6 })
   })
+
+  it('should use injected language services and reconfigure them on updates', () => {
+    const manager = new ConfigurationManager()
+    const factory = createFakeLanguageServiceFactory()
+    const service = new StyledTemplateLanguageService(
+      ts,
+      manager,
+      new StyledVirtualDocumentFactory(ts),
+      { log() {} } satisfies Logger,
+      factory,
+    )
+
+    service.getCompletionsAtPosition(createContext('color:'), { line: 0, character: 6 })
+    manager.updateFromPluginConfig({ tags: ['sty'] })
+
+    assert.strictEqual(factory.cssConfigurations.length, 2)
+    assert.strictEqual(factory.scssConfigurations.length, 2)
+    assert.deepEqual(factory.cssConfigurations[1]?.tags, ['sty'])
+    assert.deepEqual(factory.scssConfigurations[1]?.tags, ['sty'])
+  })
 })
 
 function createService() {
@@ -51,6 +76,61 @@ function createService() {
     new StyledVirtualDocumentFactory(ts),
     { log() {} } satisfies Logger,
   )
+}
+
+function createFakeLanguageServiceFactory(): EmbeddedLanguageServiceFactory & {
+  cssConfigurations: StyledPluginConfiguration[]
+  scssConfigurations: StyledPluginConfiguration[]
+} {
+  const cssConfigurations: StyledPluginConfiguration[] = []
+  const scssConfigurations: StyledPluginConfiguration[] = []
+  const cssLanguageService: CssLanguageService = {
+    configure(configuration) {
+      if (configuration) {
+        cssConfigurations.push(configuration as StyledPluginConfiguration)
+      }
+    },
+    setCompletionParticipants() {},
+    doComplete() {
+      return { isIncomplete: false, items: [] }
+    },
+  }
+  const scssLanguageService: ScssLanguageService = {
+    configure(configuration) {
+      if (configuration) {
+        scssConfigurations.push(configuration as StyledPluginConfiguration)
+      }
+    },
+    parseStylesheet() {
+      return {} as ReturnType<ScssLanguageService['parseStylesheet']>
+    },
+    doComplete() {
+      return { isIncomplete: false, items: [] }
+    },
+    doHover() {
+      return null
+    },
+    doValidation() {
+      return []
+    },
+    doCodeActions() {
+      return []
+    },
+    getFoldingRanges() {
+      return []
+    },
+  }
+
+  return {
+    cssConfigurations,
+    scssConfigurations,
+    createCssLanguageService() {
+      return cssLanguageService
+    },
+    createScssLanguageService() {
+      return scssLanguageService
+    },
+  }
 }
 
 function createContext(text: string): TemplateContext {

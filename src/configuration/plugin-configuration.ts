@@ -10,7 +10,15 @@ export interface StyledPluginConfiguration {
 
 export class PluginConfigurationManager {
   private static readonly defaultConfiguration: StyledPluginConfiguration = {
-    tags: ['styled', 'css', 'extend', 'injectGlobal', 'createGlobalStyle', 'keyframes'],
+    tags: [
+      'styled',
+      'css',
+      'keyframes',
+      'createGlobalStyle',
+      'globalStyle',
+      'injectGlobal',
+      'extend',
+    ],
     validate: true,
     lint: { emptyRules: 'ignore' },
     emmet: {},

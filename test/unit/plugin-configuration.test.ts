@@ -25,10 +25,11 @@ describe('PluginConfigurationManager', () => {
     assert.deepEqual(manager.config.tags, [
       'styled',
       'css',
-      'extend',
-      'injectGlobal',
-      'createGlobalStyle',
       'keyframes',
+      'createGlobalStyle',
+      'globalStyle',
+      'injectGlobal',
+      'extend',
     ])
     assert.strictEqual(manager.config.validate, true)
     assert.deepEqual(manager.config.emmet, {})
@@ -46,10 +47,11 @@ describe('PluginConfigurationManager', () => {
     assert.deepEqual(manager.config.tags, [
       'styled',
       'css',
-      'extend',
-      'injectGlobal',
-      'createGlobalStyle',
       'keyframes',
+      'createGlobalStyle',
+      'globalStyle',
+      'injectGlobal',
+      'extend',
     ])
     assert.strictEqual(manager.config.validate, true)
     assert.deepEqual(manager.config.lint, { emptyRules: 'ignore' })

@@ -14,9 +14,11 @@ Cross-editor TypeScript Server plugin that adds intellisense to [styled componen
 
 ## Usage
 
-This plugin works with editors that load TypeScript Server plugins; cross-editor tsserver compatibility is a core project constraint. Before installing Version 2, ensure the editor's tsserver host uses TypeScript 6.0.2 or newer and Node.js 24.11.0 or newer. It is published as ESM-only and depends on Node's synchronous `require(ESM)` interoperability. The VS Code workspace TypeScript host is covered by this repository's integration suite; use the same runtime requirements when configuring other tsserver hosts. See [the compatibility notes](docs/esm-v2-compatibility.md) for details.
+This plugin supports tsserver hosts that use TypeScript 6.0.2 or newer and Node.js 24.11.0 or newer. The automated suite covers the standard Node.js tsserver path. It is published as ESM-only and depends on Node's synchronous `require(ESM)` interoperability. An editor must use a compatible tsserver host and runtime; successful installation alone does not prove editor compatibility. See [the compatibility notes](docs/esm-v2-compatibility.md) for details.
 
 ### With VS Code
+
+This is a configuration path that still requires validation against the specific VS Code and workspace TypeScript versions in use.
 
 Just install the [VS Code Styled Components extension](https://github.com/styled-components/vscode-styled-components). This extension adds syntax highlighting and IntelliSense for styled components in JavaScript and TypeScript files.
 
@@ -44,6 +46,8 @@ Finally, run the `Select TypeScript version` command in VS Code to switch to the
 
 ### With Sublime Text
 
+This is a configuration path that still requires validation against the Sublime TypeScript plugin and its bundled Node runtime.
+
 Install the plugin and TypeScript in the project workspace:
 
 ```bash
@@ -64,9 +68,11 @@ Configure the Sublime TypeScript plugin to use that workspace's TypeScript SDK, 
 }
 ```
 
-The Sublime TypeScript plugin's Node runtime must meet the Version 2 compatibility requirements above.
+The Sublime TypeScript plugin must load the workspace TypeScript SDK, and its Node runtime must meet the Version 2 compatibility requirements above.
 
 ### With Visual Studio
+
+This is a configuration path that still requires validation against the installed Visual Studio TypeScript Server host and runtime.
 
 Install the package in the project and add the same `plugins` configuration to `tsconfig.json`:
 

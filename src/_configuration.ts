@@ -26,16 +26,22 @@ export class ConfigurationManager {
   private configuration: StyledPluginConfiguration = ConfigurationManager.defaultConfiguration
 
   public updateFromPluginConfig(config: Partial<StyledPluginConfiguration>) {
+    const tags = isStringArray(config.tags)
+      ? config.tags
+      : ConfigurationManager.defaultConfiguration.tags
     const lint = {
       ...ConfigurationManager.defaultConfiguration.lint,
-      ...config.lint,
+      ...toRecord(config.lint),
     }
 
     this.configuration = {
-      tags: config.tags ?? ConfigurationManager.defaultConfiguration.tags,
-      validate: config.validate ?? ConfigurationManager.defaultConfiguration.validate,
+      tags,
+      validate:
+        typeof config.validate === 'boolean'
+          ? config.validate
+          : ConfigurationManager.defaultConfiguration.validate,
       lint,
-      emmet: config.emmet ?? ConfigurationManager.defaultConfiguration.emmet,
+      emmet: toRecord(config.emmet),
     }
 
     for (const listener of this.configUpdatedListeners) {
@@ -46,4 +52,14 @@ export class ConfigurationManager {
   public onUpdatedConfig(listener: () => void) {
     this.configUpdatedListeners.add(listener)
   }
+}
+
+function isStringArray(value: unknown): value is ReadonlyArray<string> {
+  return Array.isArray(value) && value.every((item) => typeof item === 'string')
+}
+
+function toRecord(value: unknown): Readonly<Record<string, unknown>> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Readonly<Record<string, unknown>>)
+    : {}
 }

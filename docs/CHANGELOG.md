@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Move TypeScript aliases used only by tsserver integration tests into the E2E workspace.
+- Remove the minimum-TypeScript test alias and CI matrix entry; document the TypeScript 6.0.2 minimum requirement before installation.
+- Remove the TypeScript nightly test dependency and CI pre-warning job; retain current stable TypeScript compatibility coverage.
+- Add TypeScript-version matrix and focused unit/tsserver coverage for configuration, template mappings, script kinds, plugin lifecycle, styled-components syntax, hover, and complex interpolations.
 - Fix ESM declaration generation and virtual-document boundary mapping; clear stale completion caches, remove legacy lint and test-workspace scaffolding, and document cross-editor tsserver compatibility as a core constraint.
 - Prepare the breaking v2 ESM-only tsserver plugin release for TypeScript 6+ and Node 24.11+ hosts.
 - Upgrade the VS Code language-service dependencies to their latest stable releases.

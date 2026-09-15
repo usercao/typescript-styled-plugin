@@ -48,6 +48,7 @@
     "lint:fix": "oxlint --fix .",
     "test": "yarn test:unit && yarn test:e2e",
     "test:e2e": "yarn compile && vitest run test/e2e/tests --configLoader runner",
+    "test:e2e:current": "TSSERVER_TYPESCRIPT_PACKAGE=typescript-current yarn test:e2e",
     "test:package-api": "yarn compile && tsc --noEmit -p test/package-api",
     "test:unit": "vitest run test/unit --configLoader runner",
     "typecheck": "tsc --noEmit -p . && tsc --noEmit -p test/e2e",
@@ -67,7 +68,7 @@
     "oxfmt": "^0.68.0",
     "oxlint": "^1.83.0",
     "tsdown": "^0.23.0",
-    "typescript": "~6.0.2",
+    "typescript": "~6.0.3",
     "vite": "^8.3.0",
     "vitest": "^5.0.0"
   },

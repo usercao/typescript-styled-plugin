@@ -8,7 +8,7 @@ TypeScript 6 host can load the plugin.
 
 Version 2 requires all of the following:
 
-- TypeScript 6 or newer.
+- TypeScript 6.0.2 or newer.
 - A tsserver host running Node.js 24.11.0 or newer.
 - Node's `require(ESM)` interoperability enabled, which is the default in the
   supported Node versions.
@@ -33,8 +33,8 @@ returns that factory directly to tsserver.
 ## Consequences
 
 This is a deliberate breaking change. v2 does not work in a host whose bundled
-Node version is older than 24.11.0, even when that host supplies TypeScript 6.
-Those users must remain on v1 or upgrade their editor or tsserver host.
+Node version is older than 24.11.0 or whose TypeScript version is older than
+6.0.2. Those users must remain on v1 or upgrade their editor or tsserver host.
 
 The plugin keeps its runtime dependency boundary narrow: tsserver injects the
 TypeScript instance into the factory, and all internal TypeScript runtime calls
@@ -46,11 +46,12 @@ runtime into its ESM output.
 Before publishing v2, verify the packed package with:
 
 1. Node 24.11.0 and the current Node LTS line.
-2. TypeScript 6 and the next supported TypeScript major version.
+2. The current supported TypeScript release.
 3. The VS Code workspace TypeScript host and every other editor claimed as
    supported.
 4. A tsserver integration test that proves the package is loaded through the
    normal `plugins` configuration path.
 
 The repository's end-to-end suite currently verifies the standard Node 24 and
-TypeScript 6 tsserver path.
+current TypeScript 6 tsserver path. The minimum supported TypeScript version is
+published here and in the README rather than maintained as a test-matrix alias.

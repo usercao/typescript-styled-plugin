@@ -1,13 +1,18 @@
 import type { TSServer, TSServerResponseMap } from '../server-fixture'
 
-export function openMockFile(server: TSServer, mockFileName: string, fileContent: string) {
+export function openMockFile(
+  server: TSServer,
+  mockFileName: string,
+  fileContent: string,
+  scriptKindName: 'JS' | 'JSX' | 'TS' | 'TSX' = 'TS',
+) {
   server.send(
     {
       command: 'open',
       arguments: {
         file: mockFileName,
         fileContent,
-        scriptKindName: 'TS',
+        scriptKindName,
       },
     },
     false,

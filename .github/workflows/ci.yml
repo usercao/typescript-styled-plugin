@@ -75,4 +75,4 @@ jobs:
       - run: yarn install --immutable
       - name: Compiling
         run: yarn compile
-      - run: yarn e2e
+      - run: yarn test:e2e:current

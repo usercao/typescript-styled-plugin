@@ -295,7 +295,7 @@ export class StyledTemplateLanguageService implements TemplateLanguageService {
     const code = typeof diagnostic.code === 'number' ? diagnostic.code : cssErrorCode
     return {
       code,
-      messageText: diagnostic.message,
+      messageText: toText(diagnostic.message),
       category: translateSeverity(this.typescript, diagnostic.severity),
       file,
       start,
@@ -579,4 +579,8 @@ function toDisplayParts(text: string | vscode.MarkupContent | undefined): ts.Sym
       text: typeof text === 'string' ? text : text.value,
     },
   ]
+}
+
+function toText(text: string | vscode.MarkupContent): string {
+  return typeof text === 'string' ? text : text.value
 }

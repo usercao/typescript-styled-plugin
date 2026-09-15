@@ -14,7 +14,7 @@ Cross-editor TypeScript Server plugin that adds intellisense to [styled componen
 
 ## Usage
 
-This plugin works with editors that load TypeScript Server plugins; cross-editor tsserver compatibility is a core project constraint. Version 2 requires TypeScript 6 or later and a tsserver host running Node.js 24.11.0 or later. It is published as ESM-only and depends on Node's synchronous `require(ESM)` interoperability. The VS Code workspace TypeScript host is covered by this repository's integration suite; use the same runtime requirements when configuring other tsserver hosts. See [the compatibility notes](docs/esm-v2-compatibility.md) for details.
+This plugin works with editors that load TypeScript Server plugins; cross-editor tsserver compatibility is a core project constraint. Before installing Version 2, ensure the editor's tsserver host uses TypeScript 6.0.2 or newer and Node.js 24.11.0 or newer. It is published as ESM-only and depends on Node's synchronous `require(ESM)` interoperability. The VS Code workspace TypeScript host is covered by this repository's integration suite; use the same runtime requirements when configuring other tsserver hosts. See [the compatibility notes](docs/esm-v2-compatibility.md) for details.
 
 ### With VS Code
 
@@ -86,7 +86,7 @@ npm install --save-dev @styled/typescript-styled-plugin typescript
 }
 ```
 
-Visual Studio must use a TypeScript Server host with TypeScript 6 and Node.js 24.11.0 or newer. Older bundled Node runtimes cannot load the ESM-only Version 2 package.
+Visual Studio must use a TypeScript Server host with TypeScript 6.0.2 or newer and Node.js 24.11.0 or newer. Older bundled Node runtimes cannot load the ESM-only Version 2 package.
 
 ## Configuration
 

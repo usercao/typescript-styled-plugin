@@ -466,7 +466,7 @@ __metadata:
     oxfmt: "npm:^0.68.0"
     oxlint: "npm:^1.83.0"
     tsdown: "npm:^0.23.0"
-    typescript: "npm:~6.0.2"
+    typescript: "npm:~6.0.3"
     typescript-template-language-service-decorator: "npm:^2.3.2"
     vite: "npm:^8.3.0"
     vitest: "npm:^5.0.0"
@@ -797,7 +797,9 @@ __metadata:
   resolution: "e2e@workspace:test/e2e"
   dependencies:
     "@styled/typescript-styled-plugin": "workspace:*"
-    typescript: "npm:~6.0.2"
+    typescript: "npm:~6.0.3"
+    typescript-current: "npm:typescript@6.0.3"
+    typescript-legacy: "npm:typescript@5.9.3"
   languageName: unknown
   linkType: soft
 
@@ -1558,14 +1560,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript-template-language-service-decorator@npm:^2.3.2":
-  version: 2.3.2
-  resolution: "typescript-template-language-service-decorator@npm:2.3.2"
-  checksum: 10c0/6f3b5af98372a18c261db45263fe22e6714169562db00af2e77fac788b96e62107f57a49aa72de3004bf50639ccb10e000c6ccb5406000e53cab69b6ab4a05cb
-  languageName: node
-  linkType: hard
-
-"typescript@npm:~6.0.2":
+"typescript-current@npm:typescript@6.0.3, typescript@npm:~6.0.3":
   version: 6.0.3
   resolution: "typescript@npm:6.0.3"
   bin:
@@ -1575,7 +1570,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A~6.0.2#optional!builtin<compat/typescript>":
+"typescript-legacy@npm:typescript@5.9.3":
+  version: 5.9.3
+  resolution: "typescript@npm:5.9.3"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: 10c0/6bd7552ce39f97e711db5aa048f6f9995b53f1c52f7d8667c1abdc1700c68a76a308f579cd309ce6b53646deb4e9a1be7c813a93baaf0a28ccd536a30270e1c5
+  languageName: node
+  linkType: hard
+
+"typescript-template-language-service-decorator@npm:^2.3.2":
+  version: 2.3.2
+  resolution: "typescript-template-language-service-decorator@npm:2.3.2"
+  checksum: 10c0/6f3b5af98372a18c261db45263fe22e6714169562db00af2e77fac788b96e62107f57a49aa72de3004bf50639ccb10e000c6ccb5406000e53cab69b6ab4a05cb
+  languageName: node
+  linkType: hard
+
+"typescript@patch:typescript@npm%3A~6.0.3#optional!builtin<compat/typescript>":
   version: 6.0.3
   resolution: "typescript@patch:typescript@npm%3A6.0.3#optional!builtin<compat/typescript>::version=6.0.3&hash=5786d5"
   bin:
@@ -1746,10 +1758,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vscode-languageserver-textdocument@npm:1.0.11":
-  version: 1.0.11
-  resolution: "vscode-languageserver-textdocument@npm:1.0.11"
-  checksum: 10c0/1996a38e24571e05aa21dd4f46e0a6849e22301c9a66996762e77d9c6df3622de0bd31cd5742a0c0c47fb9dfd00b310ad08c44d08241873ea571edacd5238da6
+"vscode-languageserver-textdocument@npm:1.0.14, vscode-languageserver-textdocument@npm:^1.0.1, vscode-languageserver-textdocument@npm:^1.0.12":
+  version: 1.0.14
+  resolution: "vscode-languageserver-textdocument@npm:1.0.14"
+  checksum: 10c0/06a4c6cc82d1f84be6240fcbd48d50c536dfecb1c60e9e7eadcf6bad40c5a4de288f4f1262e09f2be007ec2c96f4acbf3ce3eb139bc0e7c28c16571d1e382f2f
   languageName: node
   linkType: hard
 
@@ -1757,6 +1769,13 @@ __metadata:
   version: 3.17.5
   resolution: "vscode-languageserver-types@npm:3.17.5"
   checksum: 10c0/1e1260de79a2cc8de3e46f2e0182cdc94a7eddab487db5a3bd4ee716f67728e685852707d72c059721ce500447be9a46764a04f0611e94e4321ffa088eef36f8
+  languageName: node
+  linkType: hard
+
+"vscode-languageserver-types@npm:3.18.3, vscode-languageserver-types@npm:^3.15.1":
+  version: 3.18.3
+  resolution: "vscode-languageserver-types@npm:3.18.3"
+  checksum: 10c0/a750da5edbfb08a009b9fcfd780accff17c6312658eab7fcd29baf1bf8318578fdcd4de87a1e25754af7aec72aa5ee9218712614763f27e93313c85768ea17bf
   languageName: node
   linkType: hard
 

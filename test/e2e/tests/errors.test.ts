@@ -466,4 +466,23 @@ describe('Errors', () => {
     assert.isTrue(errorResponse.success)
     assert.strictEqual(errorResponse.body.length, 0)
   })
+
+  it('should not return errors for object interpolations with nested templates', async () => {
+    const errorResponse = await getSemanticDiagnosticsForFile(
+      [
+        'function css(strings: TemplateStringsArray, ...values: unknown[]) { return ""; }',
+        'const styles = {',
+        '  active: css`color: ${({ theme: { colors } }: { theme: { colors: { primary: string } } }) => colors.primary};`,',
+        '}',
+        'const q = css`',
+        '  ${styles.active}',
+        '  &:hover {',
+        '    ${css`background: ${({ tone }: { tone: string }) => tone};`}',
+        '  }',
+        '`',
+      ].join('\n'),
+    )
+    assert.isTrue(errorResponse.success)
+    assert.strictEqual(errorResponse.body.length, 0)
+  })
 })

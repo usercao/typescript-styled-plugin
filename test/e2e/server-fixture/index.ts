@@ -1,4 +1,5 @@
 import { fork } from 'node:child_process'
+import { existsSync } from 'node:fs'
 import path from 'node:path'
 
 export interface TSServerResponseMap {
@@ -11,8 +12,10 @@ export interface TSServerResponseMap {
     TSServerCompletionEntry[],
     TSServerCompletionMetadata
   >
+  configurePlugin: TSServerResponse<'configurePlugin', undefined>
   getCodeFixes: TSServerResponse<'getCodeFixes', TSServerCodeFix[]>
   getOutliningSpans: TSServerResponse<'getOutliningSpans', TSServerOutliningSpan[]>
+  quickinfo: TSServerResponse<'quickinfo', TSServerQuickInfo | undefined>
   semanticDiagnosticsSync: TSServerResponse<'semanticDiagnosticsSync', TSServerDiagnostic[]>
 }
 
@@ -69,12 +72,24 @@ interface TSServerOutliningSpan {
   }
 }
 
+interface TSServerQuickInfo {
+  displayString: string
+  documentation: string | Array<{ text: string }>
+  end: TSServerPosition
+  start: TSServerPosition
+}
+
 interface TSServerPosition {
   line: number
   offset: number
 }
 
 type TSServerProtocolResponse = TSServerResponseMap[keyof TSServerResponseMap]
+
+export interface TSServerOptions {
+  pluginProbeLocations?: string[]
+  typescriptPackage?: string
+}
 
 export class TSServer {
   private readonly _exitPromise: Promise<number | null>
@@ -84,9 +99,15 @@ export class TSServer {
   private readonly _server
   public readonly responses: TSServerProtocolResponse[] = []
 
-  constructor(project = 'project-fixture') {
+  constructor(project = 'project-fixture', options: TSServerOptions = {}) {
+    const typescriptPackage =
+      options.typescriptPackage || process.env.TSSERVER_TYPESCRIPT_PACKAGE || 'typescript'
     const logfile = path.join(__dirname, 'log.txt')
-    const tsserverPath = require.resolve('typescript/lib/tsserver.js')
+    const typescriptPackageJson = require.resolve(`${typescriptPackage}/package.json`)
+    const tsserverPath = path.join(path.dirname(typescriptPackageJson), 'lib', 'tsserver.js')
+    if (!existsSync(tsserverPath)) {
+      throw new Error(`${typescriptPackage} does not provide a tsserver executable.`)
+    }
     const server = fork(
       tsserverPath,
       [
@@ -95,7 +116,7 @@ export class TSServer {
         '--logFile',
         logfile,
         '--pluginProbeLocations',
-        path.join(__dirname, '..'),
+        (options.pluginProbeLocations || [path.join(__dirname, '..')]).join(','),
       ],
       {
         cwd: path.join(__dirname, '..', project),
@@ -219,8 +240,8 @@ function isTSServerResponse(value: unknown): value is TSServerProtocolResponse {
   )
 }
 
-function createServer(project?: string) {
-  return new TSServer(project)
+function createServer(project?: string, options?: TSServerOptions) {
+  return new TSServer(project, options)
 }
 
 export default createServer

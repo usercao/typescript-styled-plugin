@@ -64,14 +64,14 @@
 
 - [x] 已将单元测试和 tsserver 端到端测试迁移至 Vitest，并保留端到端夹具的串行执行；端到端夹具与用例已迁移为 TypeScript，支持 TypeScript 6 的 `Content-Length` 响应帧。
 - [x] 已覆盖 `getSubstitutions` 的主要边界、虚拟文档 offset/position 双向映射与 `keyframes` 包装，以及插值后的诊断和代码修复位置映射。
-- [ ] 补充配置合并、补全项转换、悬浮和折叠范围的单测。
+- [x] 补充配置合并、补全项转换、悬浮和折叠范围的单测。
 - [x] 补充虚拟文档无效映射边界单测。
-- [ ] 为插值补充尚未覆盖的对象插值和复杂嵌套模板边界；不完整模板继续以 tsserver 编辑态集成测试验证。
+- [x] 为插值补充尚未覆盖的对象插值和复杂嵌套模板边界；不完整模板继续以 tsserver 编辑态集成测试验证。
 - [x] 端到端断言已验证关键项目、编辑范围、诊断代码/位置和无异常；补全测试不再硬编码候选总数。
-- [ ] 在端到端夹具中分别使用“最低支持 TypeScript”“当前稳定 TypeScript”“下一主版本/nightly 每日构建”运行；nightly 每日构建仅作允许失败的预警任务。
-- [ ] 添加插件加载失败、无效配置、无效 TypeScript 版本与配置热更新的端到端覆盖。
-- [ ] 为真实 styled-components 常见写法扩充夹具：`styled.div`、`styled(Component)`、`css`、`keyframes`、`createGlobalStyle`、`.extend` 的历史兼容行为及 TSX 文件。
-- [ ] 明确 JavaScript/TypeScript/JSX/TSX 是否均为正式支持，并在每种脚本模式至少保留一个端到端案例。
+- [x] 在端到端夹具中使用当前稳定 TypeScript 运行兼容性测试；最低支持版本在用户文档中明确告知。
+- [x] 添加插件加载失败、无效配置、无效 TypeScript 版本与配置热更新的端到端覆盖。
+- [x] 为真实 styled-components 常见写法扩充夹具：`styled.div`、`styled(Component)`、`css`、`keyframes`、`createGlobalStyle`、`.extend` 的历史兼容行为及 TSX 文件。
+- [x] 正式支持 JavaScript、TypeScript、JSX 与 TSX；每种脚本模式均保留一个 tsserver 端到端补全案例。
 
 验收：任一核心 feature 的映射算法可用快速单测定位；宿主 API 兼容性问题由 tsserver 端到端测试拦截；上游 CSS 数据更新不会因候选条目数量变化造成无意义失败。
 

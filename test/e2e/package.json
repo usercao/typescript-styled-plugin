@@ -3,6 +3,10 @@
   "private": true,
   "dependencies": {
     "@styled/typescript-styled-plugin": "workspace:*",
-    "typescript": "~6.0.2"
+    "typescript": "~6.0.3"
+  },
+  "devDependencies": {
+    "typescript-current": "npm:typescript@6.0.3",
+    "typescript-legacy": "npm:typescript@5.9.3"
   }
 }

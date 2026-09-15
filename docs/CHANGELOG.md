@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Split user configuration and maintainer workflow guidance into dedicated docs.
 - Clarify the supported tsserver host contract and label editor-specific setup instructions as pending host validation.
 - Normalize test directories, fixture names, test filenames, and E2E test terminology.
 - Normalize source module paths and internal naming around the template language service, tsserver, configuration, virtual documents, and CSS features.

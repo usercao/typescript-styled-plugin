@@ -1,5 +1,4 @@
 // @ts-check
-const assert = require('chai').assert
 const path = require('path')
 const createServer = require('../server-fixture')
 const { openMockFile, getFirstResponseOfType } = require('./_helpers')

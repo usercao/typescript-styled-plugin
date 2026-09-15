@@ -27,12 +27,15 @@
   "main": "lib/index.js",
   "scripts": {
     "compile": "tsc -p .",
-    "e2e": "mocha e2e/tests --slow 2000 --timeout 10000",
+    "e2e": "yarn test:e2e",
     "format": "oxfmt --write .",
     "format:check": "oxfmt --check .",
     "lint": "oxlint .",
     "lint:fix": "oxlint --fix .",
-    "unit": "mocha ./lib/test",
+    "test": "yarn test:unit && yarn test:e2e",
+    "test:e2e": "yarn compile && vitest run e2e/tests",
+    "test:unit": "vitest run src/test",
+    "unit": "yarn test:unit",
     "watch:compile": "tsc --watch -p ."
   },
   "dependencies": {
@@ -43,15 +46,13 @@
     "vscode-languageserver-types": "3.17.5"
   },
   "devDependencies": {
-    "@types/chai": "4.3.4",
-    "@types/mocha": "10.0.1",
-    "@types/node": "18.11.9",
-    "chai": "4.3.7",
+    "@types/node": "^24.0.0",
     "glob": "8.0.3",
-    "mocha": "10.1.0",
     "oxfmt": "^0.68.0",
     "oxlint": "^1.83.0",
-    "typescript": "5.3.3"
+    "typescript": "5.3.3",
+    "vite": "^8.3.0",
+    "vitest": "^5.0.0"
   },
   "resolutions": {
     "vscode-languageserver-textdocument": "1.0.11",

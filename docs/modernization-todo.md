@@ -49,7 +49,7 @@
 
 ## 阶段 1：测试先行与兼容矩阵
 
-- [ ] 将单测迁移到 Vitest，或保留 Mocha 但补全类型检查与覆盖率。建议采用 Vitest，以与现代 TypeScript 工具链和 `vscode-yak` 的测试方式一致；迁移应为独立提交。
+- [x] 已将单元测试和 tsserver 端到端测试迁移至 Vitest，并保留端到端夹具的串行执行；后续补充覆盖率与测试分片策略。
 - [ ] 让单测覆盖 `getSubstitutions`、配置合并、虚拟文档的 offset/position 双向映射、`keyframes` 包装、诊断范围映射、补全项转换、代码操作映射和折叠范围。
 - [ ] 为插值建立表格驱动的边界用例：嵌套模板、跨行插值、选择器、属性名、值加单位、连续插值、对象插值和不完整模板。
 - [ ] 调整端到端断言：验证关键项目、编辑范围、诊断代码/位置和无异常；删除对补全总数的硬编码，除非测试目的正是固定候选集合。
@@ -79,7 +79,7 @@
 - [x] 已采用 `oxfmt` 和 `oxlint`，并将格式检查接入 CI；当前 9 条非阻断 warning 来自测试夹具和冗余转义，后续单独清理。
 - [x] 已移除 ESLint、Prettier 及 `eslint-plugin-prettier`；格式化通过独立 `format:check` 执行。
 - [ ] 将 `glob` 从开发依赖移除，前提是确认没有脚本或测试使用它；目前 `package.json` 脚本没有引用。
-- [ ] 升级 `@types/node`、`@types/chai`、`@types/mocha`，并在迁移 Vitest 后移除 Chai/Mocha 及其类型。
+- [x] 已升级 `@types/node` 至 Vitest 所需版本，并移除 Chai、Mocha 及其类型；`yarn.lock` 中的 Chai 仅为 Vitest 的传递依赖。
 - [x] 已以独立格式化基线提交前变更应用 `oxfmt`，后续功能改动应避免混入全仓机械格式化。
 - [ ] 添加依赖更新机器人（Renovate 或 Dependabot），将运行时依赖、开发工具、GitHub Actions 分组，避免大跨度堆叠升级。
 

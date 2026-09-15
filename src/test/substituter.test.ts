@@ -1,6 +1,5 @@
 // @ts-check
-import { assert } from 'chai'
-import 'mocha'
+import { assert, describe, it } from 'vitest'
 
 import { getSubstitutions } from '../_substituter'
 

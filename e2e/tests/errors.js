@@ -1,5 +1,4 @@
 // @ts-check
-const assert = require('chai').assert
 const path = require('path')
 const createServer = require('../server-fixture')
 const { openMockFile, getFirstResponseOfType } = require('./_helpers')
@@ -141,10 +140,10 @@ describe('Errors', () => {
         const q = css\`
             display: flex;
             \${fullWidth()};
-        
+
             \${Button} {
             width: 100%;
-            
+
             &:not(:first-child):not(:last-child) {
                 margin-left: 0;
                 margin-right: 0;

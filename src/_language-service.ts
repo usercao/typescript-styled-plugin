@@ -470,6 +470,8 @@ function translateCompetionEntry(
   doc: TextDocument,
   wrapper: string,
 ): ts.CompletionEntry {
+  const textEdit = item.textEdit
+  const range = textEdit && 'range' in textEdit ? textEdit.range : undefined
   return {
     name: item.label,
     kind: item.kind
@@ -479,10 +481,8 @@ function translateCompetionEntry(
     sortText: item.sortText || item.label,
     replacementSpan: {
       // The correct offset for start seems to be the range.start minus the wrapper
-      start: doc.offsetAt((item as any).textEdit.range.start) - wrapper.length,
-      length:
-        doc.offsetAt((item as any).textEdit.range.end) -
-        doc.offsetAt((item as any).textEdit.range.start),
+      start: range ? doc.offsetAt(range.start) - wrapper.length : 0,
+      length: range ? doc.offsetAt(range.end) - doc.offsetAt(range.start) : 0,
     },
   }
 }

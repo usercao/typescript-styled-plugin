@@ -7,7 +7,7 @@ import { getFirstResponseOfType, openMockFile } from './_helpers'
 
 const mockFileName = path.join(__dirname, '..', 'project-fixture', 'main.ts')
 
-const createServerWithMockFile = (fileContents) => {
+const createServerWithMockFile = (fileContents: string) => {
   const server = createServer()
   openMockFile(server, mockFileName, fileContents)
   return server
@@ -241,6 +241,10 @@ describe('Completions', () => {
     const completionsResponse = getFirstResponseOfType('completions', server)
     assert.isTrue(completionsResponse.success)
     const aliceBlue = completionsResponse.body.find((item) => item.name === 'aliceblue')
+    assert.isDefined(aliceBlue)
+    if (aliceBlue === undefined) {
+      throw new Error('Expected aliceblue completion.')
+    }
     assert.isTrue(aliceBlue.kindModifiers === 'color')
   })
 
@@ -252,6 +256,10 @@ describe('Completions', () => {
     const completionsResponse = getFirstResponseOfType('completions', server)
     assert.isTrue(completionsResponse.success)
     const aliceBlue = completionsResponse.body.find((item) => item.name === 'aliceblue')
+    assert.isDefined(aliceBlue)
+    if (aliceBlue === undefined) {
+      throw new Error('Expected aliceblue completion.')
+    }
     assert.isTrue(aliceBlue.kindModifiers === 'color')
   })
 })

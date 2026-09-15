@@ -6,7 +6,7 @@ import {
 } from 'typescript-template-language-service-decorator'
 import * as ts from 'typescript/lib/tsserverlibrary'
 
-import { ConfigurationManager } from './_configuration'
+import { ConfigurationManager, StyledPluginConfiguration } from './_configuration'
 import { StyledTemplateLanguageService } from './_language-service'
 import { LanguageServiceLogger } from './_logger'
 import { getSubstitutions } from './_substituter'
@@ -44,7 +44,7 @@ export class StyledPlugin {
     )
   }
 
-  public onConfigurationChanged(config: any) {
+  public onConfigurationChanged(config: Partial<StyledPluginConfiguration>) {
     if (this._logger) {
       this._logger.log('onConfigurationChanged')
     }

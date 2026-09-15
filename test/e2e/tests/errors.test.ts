@@ -6,35 +6,40 @@ import createServer from '../server-fixture'
 import { getFirstResponseOfType, openMockFile } from './_helpers'
 
 const mockFileName = path.join(__dirname, '..', 'project-fixture', 'main.ts')
+const cssDiagnosticCode = 9999
 
-const getSemanticDiagnosticsForFile = (fileContents) => {
+const getSemanticDiagnosticsForFile = (fileContents: string) => {
   const server = createServer()
   openMockFile(server, mockFileName, fileContents)
   server.sendCommand('semanticDiagnosticsSync', { file: mockFileName })
 
   return server.close().then(() => {
-    return getFirstResponseOfType('semanticDiagnosticsSync', server)
+    const response = getFirstResponseOfType('semanticDiagnosticsSync', server)
+    return {
+      ...response,
+      body: response.body.filter((diagnostic) => diagnostic.code === cssDiagnosticCode),
+    }
   })
 }
 
 describe('Errors', () => {
   it('should return error for unknown property', async () => {
     const errorResponse = await getSemanticDiagnosticsForFile(
-      'function css(x) { return x; }; const q = css`boarder: 1px solid black;`',
+      'function css(x: TemplateStringsArray) { return x; }; const q = css`boarder: 1px solid black;`',
     )
     assert.isTrue(errorResponse.success)
     assert.strictEqual(errorResponse.body.length, 1)
     const error = errorResponse.body[0]
     assert.strictEqual(error.text, "Unknown property: 'boarder'")
     assert.strictEqual(error.start.line, 1)
-    assert.strictEqual(error.start.offset, 46)
+    assert.strictEqual(error.start.offset, 68)
     assert.strictEqual(error.end.line, 1)
-    assert.strictEqual(error.end.offset, 53)
+    assert.strictEqual(error.end.offset, 75)
   })
 
   it('should not return errors for empty rulesets', async () => {
     const errorResponse = await getSemanticDiagnosticsForFile(
-      'function css(x) { return x; }; const q = css``',
+      'function css(x: TemplateStringsArray) { return x; }; const q = css``',
     )
     assert.isTrue(errorResponse.success)
     assert.strictEqual(errorResponse.body.length, 0)
@@ -42,7 +47,7 @@ describe('Errors', () => {
 
   it('should not return errors for nested rulesets', async () => {
     const errorResponse = await getSemanticDiagnosticsForFile(
-      'function css(x) { return x; }; const q = css`&:hover { border: 1px solid black; }`',
+      'function css(x: TemplateStringsArray) { return x; }; const q = css`&:hover { border: 1px solid black; }`',
     )
     assert.isTrue(errorResponse.success)
     assert.strictEqual(errorResponse.body.length, 0)
@@ -50,7 +55,7 @@ describe('Errors', () => {
 
   it('should not return an error for a placeholder in a property', async () => {
     const errorResponse = await getSemanticDiagnosticsForFile(
-      'function css(strings, ...) { return ""; }; const q = css`color: ${"red"};`',
+      'function css(strings: TemplateStringsArray, ...values: unknown[]) { return ""; }; const q = css`color: ${"red"};`',
     )
     assert.isTrue(errorResponse.success)
     assert.strictEqual(errorResponse.body.length, 0)
@@ -59,7 +64,7 @@ describe('Errors', () => {
   it('should not return an error for a placeholder in a property with a multiline string', async () => {
     const errorResponse = await getSemanticDiagnosticsForFile(
       [
-        'function css(strings, ...) { return ""; }; const q = css`',
+        'function css(strings: TemplateStringsArray, ...values: unknown[]) { return ""; }; const q = css`',
         '    color: ${"red"};',
         '`',
       ].join('\n'),
@@ -70,23 +75,26 @@ describe('Errors', () => {
 
   it('should return errors when error occurs in last position', async () => {
     const errorResponse = await getSemanticDiagnosticsForFile(
-      'function css(strings, ...) { return ""; }; const q = css`;`',
+      'function css(strings: TemplateStringsArray, ...values: unknown[]) { return ""; }; const q = css`;`',
     )
     assert.isTrue(errorResponse.success)
     assert.strictEqual(errorResponse.body.length, 1)
     const error = errorResponse.body[0]
     assert.strictEqual(error.text, '} expected')
     assert.strictEqual(error.start.line, 1)
-    assert.strictEqual(error.start.offset, 58)
+    assert.strictEqual(error.start.offset, 97)
     assert.strictEqual(error.end.line, 1)
-    assert.strictEqual(error.end.offset, 59)
+    assert.strictEqual(error.end.offset, 98)
   })
 
   it('should return error for multiline unknown property #20', async () => {
     const errorResponse = await getSemanticDiagnosticsForFile(
-      ['function css(x) { return x; };', 'const q = css`', 'boarder: 1px solid black;', '`'].join(
-        '\n',
-      ),
+      [
+        'function css(x: TemplateStringsArray) { return x; };',
+        'const q = css`',
+        'boarder: 1px solid black;',
+        '`',
+      ].join('\n'),
     )
     assert.isTrue(errorResponse.success)
     assert.strictEqual(errorResponse.body.length, 1)
@@ -101,7 +109,7 @@ describe('Errors', () => {
   it('should not error with interpolation at start, followed by semicolon #22', async () => {
     const errorResponse = await getSemanticDiagnosticsForFile(
       [
-        'function css(...args){}',
+        'function css(...args: unknown[]){}',
         "const mixin = ''",
         // test single-line
         'css`${mixin}; color: blue;`',
@@ -128,7 +136,7 @@ describe('Errors', () => {
 
   it('should not return an error for a placeholder used as a selector (#30)', async () => {
     const errorResponse = await getSemanticDiagnosticsForFile(
-      'function css(strings, ...) { return ""; }; const q = css`${"button"} { color: red;  }`',
+      'function css(strings: TemplateStringsArray, ...values: unknown[]) { return ""; }; const q = css`${"button"} { color: red;  }`',
     )
     assert.isTrue(errorResponse.success)
     assert.strictEqual(errorResponse.body.length, 0)
@@ -136,7 +144,7 @@ describe('Errors', () => {
 
   it('should not return an error for a placeholder used as a complex selector (#30)', () => {
     return getSemanticDiagnosticsForFile(`
-        function css(strings, ...) { return ""; };
+        function css(strings: TemplateStringsArray, ...values: unknown[]) { return ""; };
         function fullWidth() { };
         const Button = {};
         const q = css\`
@@ -160,7 +168,7 @@ describe('Errors', () => {
 
   it('should not return an error for a placeholder used as selector part (#39)', async () => {
     const errorResponse = await getSemanticDiagnosticsForFile(
-      'function css(strings, ...) { return ""; }; const Content = "button"; const q = css`& > ${Content} { margin-left: 1px; }`',
+      'function css(strings: TemplateStringsArray, ...values: unknown[]) { return ""; }; const Content = "button"; const q = css`& > ${Content} { margin-left: 1px; }`',
     )
     assert.isTrue(errorResponse.success)
     assert.strictEqual(errorResponse.body.length, 0)
@@ -168,7 +176,7 @@ describe('Errors', () => {
 
   it('should not return an error for a placeholder in multiple properties (#39)', () => {
     return getSemanticDiagnosticsForFile(
-      `function css(strings, ...) { return ""; }; const Content = "button"; const q = css\`
+      `function css(strings: TemplateStringsArray, ...values: unknown[]) { return ""; }; const Content = "button"; const q = css\`
             & > $\{'content'} {
                 color: 1px;
             }
@@ -185,7 +193,7 @@ describe('Errors', () => {
 
   it('should not return an error for a placeholder that spans multiple lines aaa (#44)', () => {
     return getSemanticDiagnosticsForFile(
-      `let css: any = {}; const q = css.a\`
+      `const css = {} as { a: (strings: TemplateStringsArray, ...values: unknown[]) => string }; const q = css.a\`
   color:
     $\{'transparent'};
   border-bottom: 1px;
@@ -202,13 +210,13 @@ describe('Errors', () => {
 
   it('should not return an error for complicated style (#44)', () => {
     return getSemanticDiagnosticsForFile(
-      `let css: any = {}; const q = css.a\`
+      `const css = {} as { a: (strings: TemplateStringsArray, ...values: unknown[]) => string }; const q = css.a\`
   display: flex;
   width: 6rem;
   height: 5rem;
   margin-right: -3px;
   border-right: 3px solid
-    $\{({ active, theme: { colors } }) =>
+    $\{({ active, theme: { colors } }: { active: boolean; theme: { colors: { yellow: string } } }) =>
                 active ? colors.yellow : 'transparent'};
   border-bottom: 1px solid rgba(255, 255, 255, 0.5);
   font-weight: bold;
@@ -231,7 +239,7 @@ describe('Errors', () => {
 
   it('should not return an error for a placeholder value followed by unit (#48)', () => {
     return getSemanticDiagnosticsForFile(
-      `function css(strings, ...) { return ""; }; const value = 1; const q = css\`
+      `function css(strings: TemplateStringsArray, ...values: unknown[]) { return ""; }; const value = 1; const q = css\`
             width: $\{value}%;
         \``,
     ).then((errorResponse) => {
@@ -242,7 +250,7 @@ describe('Errors', () => {
 
   it('should not return an error for a placeholder as the declaration name (#52)', () => {
     return getSemanticDiagnosticsForFile(
-      `function css(strings, ...) { return ""; }; const q = css\`
+      `function css(strings: TemplateStringsArray, ...values: unknown[]) { return ""; }; const q = css\`
             $\{'width'}: 1px;
         \``,
     ).then((errorResponse) => {
@@ -253,7 +261,7 @@ describe('Errors', () => {
 
   it('should not return an error for a placeholder as part of a rule (#59)', () => {
     return getSemanticDiagnosticsForFile(
-      `function css(strings, ...) { return ""; }; const q = css\`
+      `function css(strings: TemplateStringsArray, ...values: unknown[]) { return ""; }; const q = css\`
                 $\{'a'}, \${'button'} {
                     width: 1px;
                 }
@@ -266,7 +274,7 @@ describe('Errors', () => {
 
   it('should not return an error placeholder used as entire property within nested (#54)', () => {
     return getSemanticDiagnosticsForFile(
-      `function css(strings, ...) { return ""; }; const q = css\`
+      `function css(strings: TemplateStringsArray, ...values: unknown[]) { return ""; }; const q = css\`
                 &.buu-foo {
                     \${'baseShape'};
                     &.active {
@@ -282,7 +290,7 @@ describe('Errors', () => {
 
   it('should not return an error on adjacent variables (#62)', () => {
     return getSemanticDiagnosticsForFile(
-      `let css: any = {}; const margin1 = "3px"; const margin2 = "3px"; const q = css.a\`
+      `const css = {} as { a: (strings: TemplateStringsArray, ...values: unknown[]) => string }; const margin1 = "3px"; const margin2 = "3px"; const q = css.a\`
                 margin: $\{margin1} $\{margin2};
             \``,
     ).then((errorResponse) => {
@@ -293,7 +301,7 @@ describe('Errors', () => {
 
   it('should not return an error for contextual selector (#71)', () => {
     return getSemanticDiagnosticsForFile(
-      `let css: any = {}; const q = css.a\`
+      `const css = {} as { a: (strings: TemplateStringsArray, ...values: unknown[]) => string }; const q = css.a\`
                 html.test & {
                     display: none;
                 }
@@ -307,7 +315,7 @@ describe('Errors', () => {
   it('should not return an error for placeholder used in contextual selector (#71)', async () => {
     {
       const errorResponse = await getSemanticDiagnosticsForFile(
-        `let css: any = {}; let FlipContainer = 'button'; const q = css.a\`
+        `const css = {} as { a: (strings: TemplateStringsArray, ...values: unknown[]) => string }; let FlipContainer = 'button'; const q = css.a\`
                 position: relative;
 
                 $\{FlipContainer}:hover & {
@@ -321,7 +329,7 @@ describe('Errors', () => {
     {
       // #67 part 1
       const errorResponse = await getSemanticDiagnosticsForFile(
-        `let css: any = {}; let OtherStyledElm = 'button'; const q = css.a\`
+        `const css = {} as { a: (strings: TemplateStringsArray, ...values: unknown[]) => string }; let OtherStyledElm = 'button'; const q = css.a\`
                     \${OtherStyledElm}:not([value=""]) + & {
                         transform: rotateY(180deg);
                     }
@@ -333,7 +341,7 @@ describe('Errors', () => {
     {
       // #67 part 2
       const errorResponse = await getSemanticDiagnosticsForFile(
-        `let css: any = {}; let OtherStyledElm = 'button'; const q = css.a\`
+        `const css = {} as { a: (strings: TemplateStringsArray, ...values: unknown[]) => string }; let OtherStyledElm = 'button'; const q = css.a\`
                     \${OtherStyledElm} + &,
                     \${OtherStyledElm}:not([value=""]) + & {
                         transform: rotateY(180deg);
@@ -347,7 +355,7 @@ describe('Errors', () => {
 
   it('should not return an error for custom function (#21)', async () => {
     const errorResponse = await getSemanticDiagnosticsForFile(
-      `function css<T>(): any {}; const q = css<{}>()(window.blur)\`
+      `function css<T>(): (value: unknown) => (strings: TemplateStringsArray) => string { return () => () => ""; }; const q = css<{}>()(window.blur)\`
                 display: none;
             \``,
     )
@@ -357,7 +365,7 @@ describe('Errors', () => {
 
   it('should not return an error for empty sub-rulesets (#50)', async () => {
     const errorResponse = await getSemanticDiagnosticsForFile(
-      `let css: any = {}; const q = css.a\`
+      `const css = {} as { a: (strings: TemplateStringsArray, ...values: unknown[]) => string }; const q = css.a\`
                 :nth-of-type(1) {
                     \${true ? "display: initial" : "display: hidden"}
                 }
@@ -369,11 +377,11 @@ describe('Errors', () => {
 
   it('should not return an error (#74)', async () => {
     const errorResponse = await getSemanticDiagnosticsForFile(
-      `let css: any = {};
+      `const css = {} as { span: (strings: TemplateStringsArray, ...values: unknown[]) => string };
             const ListNoteItem = 'bla';
             const ListNoteTitle = css.span\`
                 font-weight: bold;
-                color: \${props => props.theme.primaryColor};
+                color: \${(props: { theme: { primaryColor: string } }) => props.theme.primaryColor};
                 \${ListNoteItem}:hover & {
                     text-decoration: underline;
                 }
@@ -385,7 +393,7 @@ describe('Errors', () => {
 
   it('should not return an error for child selector (#75)', async () => {
     const errorResponse = await getSemanticDiagnosticsForFile(
-      `let css: any = {};
+      `const css = {} as { span: (strings: TemplateStringsArray, ...values: unknown[]) => string };
             const ListNoteItem = 'bla';
             const ListNoteTitle = css.span\`
                 width: 100%;
@@ -400,7 +408,7 @@ describe('Errors', () => {
 
   it('should include error for unknown property in selector', async () => {
     const errorResponse = await getSemanticDiagnosticsForFile(
-      `let css: any = {};
+      `const css = {} as { span: (strings: TemplateStringsArray, ...values: unknown[]) => string };
             const ListNoteItem = 'bla';
             const ListNoteTitle = css.span\`
                 width: 100%;
@@ -415,7 +423,7 @@ describe('Errors', () => {
 
   it('should not error for newer properties(#95, #53)', async () => {
     const errorResponse = await getSemanticDiagnosticsForFile(
-      `let css: any = {};
+      `const css = {} as { span: (strings: TemplateStringsArray, ...values: unknown[]) => string };
             const ListNoteTitle = css.span\`
                 scrollbar-width: 10px;
                 scrollbar-color: red;

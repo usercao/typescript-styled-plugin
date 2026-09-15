@@ -1,4 +1,4 @@
-import type { TSServer } from '../server-fixture'
+import type { TSServer, TSServerResponseMap } from '../server-fixture'
 
 export function openMockFile(server: TSServer, mockFileName: string, fileContent: string) {
   server.send(
@@ -15,8 +15,11 @@ export function openMockFile(server: TSServer, mockFileName: string, fileContent
   return server
 }
 
-export function getFirstResponseOfType(command: string, server: TSServer) {
-  const response = server.responses.find((response) => response.command === command)
+export function getFirstResponseOfType<Command extends keyof TSServerResponseMap>(
+  command: Command,
+  server: TSServer,
+): TSServerResponseMap[Command] {
+  const response = server.getResponsesOfType(command)[0]
   if (response === undefined) {
     throw new Error(`Expected tsserver response for command: ${command}`)
   }
@@ -24,6 +27,9 @@ export function getFirstResponseOfType(command: string, server: TSServer) {
   return response
 }
 
-export function getResponsesOfType(command: string, server: TSServer) {
-  return server.responses.filter((response) => response.command === command)
+export function getResponsesOfType<Command extends keyof TSServerResponseMap>(
+  command: Command,
+  server: TSServer,
+): TSServerResponseMap[Command][] {
+  return server.getResponsesOfType(command)
 }

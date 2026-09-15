@@ -25,7 +25,7 @@ describe('OutliningSpans', () => {
   })
 })
 
-function getOutlingSpansForMockFile(contents) {
+function getOutlingSpansForMockFile(contents: string) {
   const server = createServer()
   openMockFile(server, mockFileName, contents)
   server.sendCommand('getOutliningSpans', { file: mockFileName })
@@ -33,7 +33,7 @@ function getOutlingSpansForMockFile(contents) {
   return server.close().then(() => getFirstResponseOfType('getOutliningSpans', server).body)
 }
 
-function assertPosition(pos, line, offset) {
+function assertPosition(pos: { line: number; offset: number }, line: number, offset: number) {
   assert.strictEqual(pos.line, line)
   assert.strictEqual(pos.offset, offset)
 }

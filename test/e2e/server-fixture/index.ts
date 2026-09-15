@@ -1,14 +1,68 @@
 import { fork } from 'node:child_process'
 import path from 'node:path'
 
-interface TSServerResponse {
-  body: any
-  command: string
-  metadata?: any
+export interface TSServerResponseMap {
+  completionEntryDetails: TSServerResponse<
+    'completionEntryDetails',
+    TSServerCompletionEntryDetails[]
+  >
+  completions: TSServerResponse<
+    'completions',
+    TSServerCompletionEntry[],
+    TSServerCompletionMetadata
+  >
+  getCodeFixes: TSServerResponse<'getCodeFixes', TSServerCodeFix[]>
+  getOutliningSpans: TSServerResponse<'getOutliningSpans', TSServerOutliningSpan[]>
+  semanticDiagnosticsSync: TSServerResponse<'semanticDiagnosticsSync', TSServerDiagnostic[]>
+}
+
+interface TSServerResponse<Command extends string, Body, Metadata = undefined> {
+  body: Body
+  command: Command
   message?: string
-  success?: boolean
+  metadata: Metadata
+  success: boolean
   type: 'response'
 }
+
+interface TSServerCompletionEntry {
+  kindModifiers?: string
+  name: string
+}
+
+interface TSServerCompletionMetadata {
+  isIncomplete: boolean
+}
+
+interface TSServerCompletionEntryDetails {
+  documentation: Array<{ text: string }>
+  name: string
+}
+
+interface TSServerCodeFix {
+  description: string
+}
+
+interface TSServerDiagnostic {
+  code: number
+  end: TSServerPosition
+  start: TSServerPosition
+  text: string
+}
+
+interface TSServerOutliningSpan {
+  textSpan: {
+    end: TSServerPosition
+    start: TSServerPosition
+  }
+}
+
+interface TSServerPosition {
+  line: number
+  offset: number
+}
+
+type TSServerProtocolResponse = TSServerResponseMap[keyof TSServerResponseMap]
 
 export class TSServer {
   private readonly _exitPromise: Promise<number | null>
@@ -16,7 +70,7 @@ export class TSServer {
   private _pendingResponses = 0
   private _seq = 0
   private readonly _server
-  public readonly responses: TSServerResponse[] = []
+  public readonly responses: TSServerProtocolResponse[] = []
 
   constructor(project = 'project-fixture') {
     const logfile = path.join(__dirname, 'log.txt')
@@ -116,8 +170,8 @@ export class TSServer {
 
   private _handleMessage(message: string) {
     try {
-      const result = JSON.parse(message) as TSServerResponse
-      if (result.type !== 'response') {
+      const result: unknown = JSON.parse(message)
+      if (!isTSServerResponse(result)) {
         return
       }
 
@@ -130,6 +184,27 @@ export class TSServer {
       // Ignore non-protocol output from tsserver.
     }
   }
+
+  public getResponsesOfType<Command extends keyof TSServerResponseMap>(
+    command: Command,
+  ): TSServerResponseMap[Command][] {
+    return this.responses.filter(
+      (response): response is TSServerResponseMap[Command] => response.command === command,
+    )
+  }
+}
+
+function isTSServerResponse(value: unknown): value is TSServerProtocolResponse {
+  if (typeof value !== 'object' || value === null) {
+    return false
+  }
+
+  const response = value as Record<string, unknown>
+  return (
+    response.type === 'response' &&
+    typeof response.command === 'string' &&
+    typeof response.success === 'boolean'
+  )
 }
 
 function createServer(project?: string) {

@@ -68,8 +68,9 @@ export class StyledVirtualDocumentFactory implements VirtualDocumentProvider {
   }
 
   public getVirtualDocumentWrapper(context: TemplateContext): string {
-    const tag = (context.node.parent as ts.Node & { tag: any })?.tag?.escapedText
-    return tag === 'keyframes'
+    const parent = context.node.parent
+    const tag = parent && ts.isTaggedTemplateExpression(parent) ? parent.tag : undefined
+    return tag && ts.isIdentifier(tag) && tag.escapedText === 'keyframes'
       ? StyledVirtualDocumentFactory.wrapperPreKeyframes
       : StyledVirtualDocumentFactory.wrapperPreRoot
   }

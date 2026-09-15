@@ -4,8 +4,8 @@
 export interface StyledPluginConfiguration {
   readonly tags: ReadonlyArray<string>
   readonly validate: boolean
-  readonly lint: { [key: string]: any }
-  readonly emmet: { [key: string]: any }
+  readonly lint: Readonly<Record<string, unknown>>
+  readonly emmet: Readonly<Record<string, unknown>>
 }
 
 export class ConfigurationManager {
@@ -25,7 +25,7 @@ export class ConfigurationManager {
   }
   private _configuration: StyledPluginConfiguration = ConfigurationManager.defaultConfiguration
 
-  public updateFromPluginConfig(config: StyledPluginConfiguration) {
+  public updateFromPluginConfig(config: Partial<StyledPluginConfiguration>) {
     const lint = Object.assign(
       {},
       ConfigurationManager.defaultConfiguration.lint,

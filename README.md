@@ -8,9 +8,9 @@ TypeScript server plugin that adds intellisense to [styled component](https://st
 
 **Features**
 
--   IntelliSense for CSS property names and values.
--   Syntax error reporting.
--   Quick fixes for misspelled property names.
+- IntelliSense for CSS property names and values.
+- Syntax error reporting.
+- Quick fixes for misspelled property names.
 
 ## Usage
 
@@ -30,13 +30,13 @@ Then add a `plugins` section to your [`tsconfig.json`](http://www.typescriptlang
 
 ```json
 {
-    "compilerOptions": {
-        "plugins": [
-            {
-                "name": "@styled/typescript-styled-plugin"
-            }
-        ]
-    }
+  "compilerOptions": {
+    "plugins": [
+      {
+        "name": "@styled/typescript-styled-plugin"
+      }
+    ]
+  }
 }
 ```
 
@@ -56,7 +56,7 @@ And configure Sublime to use the workspace version of TypeScript by [setting the
 
 ```json
 {
-    "typescript_tsdk": "/Users/matb/my-amazing-project/node_modules/typescript/lib"
+  "typescript_tsdk": "/Users/matb/my-amazing-project/node_modules/typescript/lib"
 }
 ```
 
@@ -64,13 +64,13 @@ Finally add a `plugins` section to your [`tsconfig.json`](http://www.typescriptl
 
 ```json
 {
-    "compilerOptions": {
-        "plugins": [
-            {
-                "name": "typescript-styled-plugin"
-            }
-        ]
-    }
+  "compilerOptions": {
+    "plugins": [
+      {
+        "name": "typescript-styled-plugin"
+      }
+    ]
+  }
 }
 ```
 
@@ -88,13 +88,13 @@ Then add a `plugins` section to your [`tsconfig.json`](http://www.typescriptlang
 
 ```json
 {
-    "compilerOptions": {
-        "plugins": [
-            {
-                "name": "@styled/typescript-styled-plugin"
-            }
-        ]
-    }
+  "compilerOptions": {
+    "plugins": [
+      {
+        "name": "@styled/typescript-styled-plugin"
+      }
+    ]
+  }
 }
 ```
 
@@ -107,50 +107,50 @@ Then reload your project to make sure the plugin has been loaded properly. Note 
 This plugin adds styled component IntelliSense to any template literal [tagged](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals) with `styled`, `css`, `injectGlobal`, `keyframes` or `createGlobalStyle`:
 
 ```js
-import styled from 'styled-components';
+import styled from 'styled-components'
 
 styled.button`
-    color: blue;
-`;
+  color: blue;
+`
 ```
 
 You can enable IntelliSense for other tag names by configuring `"tags"`:
 
 ```json
 {
-    "compilerOptions": {
-        "plugins": [
-            {
-                "name": "@styled/typescript-styled-plugin",
-                "tags": ["styled", "css", "sty"]
-            }
-        ]
-    }
+  "compilerOptions": {
+    "plugins": [
+      {
+        "name": "@styled/typescript-styled-plugin",
+        "tags": ["styled", "css", "sty"]
+      }
+    ]
+  }
 }
 ```
 
 Now strings tagged with either `styled`, `css`, or `sty` will have styled component IntelliSense:
 
 ```js
-import sty from 'styled-components';
+import sty from 'styled-components'
 
 sty.button`
     color: blue;
-`;
+`
 ```
 
 Tags also apply to methods on styled components. This is enabled for `extend` by default:
 
 ```js
-import sty from 'styled-components';
+import sty from 'styled-components'
 
 const BlueButton = sty.button`
     color: blue;
-`;
+`
 
 const MyFancyBlueButton = BlueButton.extend`
-    border: 10px solid hotpink;
-`;
+  border: 10px solid hotpink;
+`
 ```
 
 ### Linting
@@ -159,14 +159,14 @@ To disable error reporting, set `"validate": false` in the plugin configuration:
 
 ```json
 {
-    "compilerOptions": {
-        "plugins": [
-            {
-                "name": "typescript-styled-plugin",
-                "validate": false
-            }
-        ]
-    }
+  "compilerOptions": {
+    "plugins": [
+      {
+        "name": "typescript-styled-plugin",
+        "validate": false
+      }
+    ]
+  }
 }
 ```
 
@@ -174,17 +174,17 @@ You can also configure how errors are reported using linter settings.
 
 ```json
 {
-    "compilerOptions": {
-        "plugins": [
-            {
-                "name": "typescript-styled-plugin",
-                "lint": {
-                    "vendorPrefix": "error",
-                    "zeroUnits": "ignore"
-                }
-            }
-        ]
-    }
+  "compilerOptions": {
+    "plugins": [
+      {
+        "name": "typescript-styled-plugin",
+        "lint": {
+          "vendorPrefix": "error",
+          "zeroUnits": "ignore"
+        }
+      }
+    ]
+  }
 }
 ```
 
@@ -392,6 +392,15 @@ The plugin is written in [TypeScript](http://www.typescriptlang.org). The source
 ```bash
 yarn compile
 ```
+
+Check formatting and linting before submitting changes:
+
+```bash
+yarn format:check
+yarn lint
+```
+
+Use `yarn format` to apply the project formatting rules and `yarn lint:fix` to apply safe lint fixes.
 
 The root Yarn workspace also installs the end-to-end test dependencies.
 

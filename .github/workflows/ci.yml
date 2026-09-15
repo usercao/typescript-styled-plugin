@@ -1,72 +1,74 @@
 on:
-    push:
-        branches:
-            - main
-    pull_request:
-        branches:
-            - main
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 name: Continuous Integration
 
 jobs:
-    lint:
-        name: Lint
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v5
-            - name: Install Node.js
-              uses: actions/setup-node@v5
-              with:
-                  node-version: 24.20.0
-                  cache: yarn
-            - run: corepack enable
-            - run: yarn install --immutable
-            - name: Linting
-              run: yarn lint
-    compile:
-        name: Compile
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v5
-            - name: Install Node.js
-              uses: actions/setup-node@v5
-              with:
-                  node-version: 24.20.0
-                  cache: yarn
-            - run: corepack enable
-            - run: yarn install --immutable
-            - name: Compiling
-              run: yarn compile
-    unit:
-        name: Unit Tests
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v5
-            - name: Install Node.js
-              uses: actions/setup-node@v5
-              with:
-                  node-version: 24.20.0
-                  cache: yarn
-            - run: corepack enable
-            - run: yarn install --immutable
-            - name: Compiling
-              run: yarn compile
-            - run: yarn unit
-    e2e:
-        name: E2E Tests
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v5
-            - name: Install Node.js
-              uses: actions/setup-node@v5
-              with:
-                  node-version: 24.20.0
-                  cache: yarn
-            - run: corepack enable
-            - run: yarn install --immutable
-            - name: Compiling
-              run: yarn compile
-            - run: yarn e2e
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Install Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24.20.0
+          cache: yarn
+      - run: corepack enable
+      - run: yarn install --immutable
+      - name: Formatting
+        run: yarn format:check
+      - name: Linting
+        run: yarn lint
+  compile:
+    name: Compile
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Install Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24.20.0
+          cache: yarn
+      - run: corepack enable
+      - run: yarn install --immutable
+      - name: Compiling
+        run: yarn compile
+  unit:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Install Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24.20.0
+          cache: yarn
+      - run: corepack enable
+      - run: yarn install --immutable
+      - name: Compiling
+        run: yarn compile
+      - run: yarn unit
+  e2e:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Install Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24.20.0
+          cache: yarn
+      - run: corepack enable
+      - run: yarn install --immutable
+      - name: Compiling
+        run: yarn compile
+      - run: yarn e2e

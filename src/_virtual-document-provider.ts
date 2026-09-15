@@ -41,7 +41,7 @@ export class StyledVirtualDocumentFactory implements VirtualDocumentProvider {
         const offset = context.toOffset(this.fromVirtualDocPosition(p))
         return this.toVirtualDocOffset(offset, context)
       },
-      lineCount: contents.split(/\n/g).length + 1,
+      lineCount: contents.split(/\n/g).length,
     }
   }
 

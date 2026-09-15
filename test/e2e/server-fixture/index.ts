@@ -40,7 +40,19 @@ interface TSServerCompletionEntryDetails {
 }
 
 interface TSServerCodeFix {
+  changes: TSServerFileTextChange[]
   description: string
+}
+
+interface TSServerFileTextChange {
+  fileName: string
+  textChanges: TSServerTextChange[]
+}
+
+interface TSServerTextChange {
+  end: TSServerPosition
+  newText: string
+  start: TSServerPosition
 }
 
 interface TSServerDiagnostic {

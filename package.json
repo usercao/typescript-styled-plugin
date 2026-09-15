@@ -46,7 +46,7 @@
     "test": "yarn test:unit && yarn test:e2e",
     "test:e2e": "yarn compile && vitest run test/e2e/tests --configLoader runner",
     "test:unit": "vitest run test/unit --configLoader runner",
-    "typecheck": "tsc --noEmit -p . && tsc --noEmit -p tsconfig.e2e.json",
+    "typecheck": "tsc --noEmit -p . && tsc --noEmit -p test/e2e",
     "unit": "yarn test:unit",
     "verify": "yarn format:check && yarn lint && yarn typecheck && yarn test && npm pack --dry-run",
     "watch:compile": "tsdown --watch"

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add virtual-document mapping and tsserver interpolation regression coverage.
+- Add an auto-discovered e2e TypeScript project for editor diagnostics.
 - Enforce strict TypeScript checking across source and end-to-end test configurations.
 - Upgrade to TypeScript 6, migrate tsserver fixtures to TypeScript, and verify the tsdown CommonJS bridge with integration tests.
 - Add tsdown builds with an ESM API and a CommonJS tsserver entry.

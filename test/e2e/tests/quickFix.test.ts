@@ -47,6 +47,50 @@ describe('QuickFix', () => {
     })
   })
 
+  it('should map a quickFix after a multiline interpolation to the source file', () => {
+    const source = [
+      'function css(strings: TemplateStringsArray, ...values: unknown[]) { return ""; }',
+      'const q = css`',
+      '  color: ${',
+      '    "red"',
+      '  };',
+      '  boarder: 1px solid black;',
+      '`',
+    ].join('\n')
+    const server = createServer()
+    openMockFile(server, mockFileName, source)
+    server.sendCommand('getCodeFixes', {
+      file: mockFileName,
+      startLine: 6,
+      startOffset: 3,
+      endLine: 6,
+      endOffset: 10,
+      errorCodes: [9999],
+    })
+
+    return server.close().then(() => {
+      const response = getFirstResponseOfType('getCodeFixes', server)
+      assert.isTrue(response.success)
+      const fix = response.body.find((item) => item.description === "Rename to 'border'")
+      assert.isDefined(fix)
+      if (fix === undefined) {
+        throw new Error('Expected a border rename fix.')
+      }
+      assert.deepEqual(fix.changes, [
+        {
+          fileName: mockFileName,
+          textChanges: [
+            {
+              newText: 'border',
+              start: { line: 6, offset: 3 },
+              end: { line: 6, offset: 10 },
+            },
+          ],
+        },
+      ])
+    })
+  })
+
   it('should only return spelling quickFix when range includes misspelled property', () => {
     const server = createServer()
     openMockFile(server, mockFileName, 'const q = css`boarder: 1px solid black;`')

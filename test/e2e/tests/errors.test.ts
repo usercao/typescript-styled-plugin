@@ -45,6 +45,17 @@ describe('Errors', () => {
     assert.strictEqual(errorResponse.body.length, 0)
   })
 
+  it('should not return CSS errors for incomplete interpolation templates', async () => {
+    for (const fileContents of [
+      'function css(x: TemplateStringsArray, ...values: unknown[]) { return x; }; const q = css`color: ${',
+      'function css(x: TemplateStringsArray, ...values: unknown[]) { return x; }; const q = css`${value',
+    ]) {
+      const errorResponse = await getSemanticDiagnosticsForFile(fileContents)
+      assert.isTrue(errorResponse.success)
+      assert.strictEqual(errorResponse.body.length, 0)
+    }
+  })
+
   it('should not return errors for nested rulesets', async () => {
     const errorResponse = await getSemanticDiagnosticsForFile(
       'function css(x: TemplateStringsArray) { return x; }; const q = css`&:hover { border: 1px solid black; }`',
@@ -104,6 +115,28 @@ describe('Errors', () => {
     assert.strictEqual(error.start.offset, 1)
     assert.strictEqual(error.end.line, 3)
     assert.strictEqual(error.end.offset, 8)
+  })
+
+  it('should map diagnostics after a multiline interpolation to the source file', async () => {
+    const errorResponse = await getSemanticDiagnosticsForFile(
+      [
+        'function css(strings: TemplateStringsArray, ...values: unknown[]) { return ""; };',
+        'const q = css`',
+        '  color: ${',
+        '    "red"',
+        '  };',
+        '  boarder: 1px solid black;',
+        '`',
+      ].join('\n'),
+    )
+    assert.isTrue(errorResponse.success)
+    assert.strictEqual(errorResponse.body.length, 1)
+    const error = errorResponse.body[0]
+    assert.strictEqual(error.text, "Unknown property: 'boarder'")
+    assert.strictEqual(error.start.line, 6)
+    assert.strictEqual(error.start.offset, 3)
+    assert.strictEqual(error.end.line, 6)
+    assert.strictEqual(error.end.offset, 10)
   })
 
   it('should not error with interpolation at start, followed by semicolon #22', async () => {

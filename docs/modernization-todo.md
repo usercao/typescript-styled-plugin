@@ -1,6 +1,6 @@
 # TypeScript Styled Plugin 现代化改造待办
 
-> 状态：规划阶段
+> 状态：实施中
 >
 > 最后核对：2026-09-15
 >
@@ -25,12 +25,22 @@
 
 ## 架构取舍
 
+### 产品定位与模块格式决策
+
+本仓库的主产品是可由 TypeScript Server 宿主加载的语言服务插件，目标是让 VS Code、Visual Studio、Sublime 和其他兼容宿主能够复用同一套 IntelliSense 能力。这与 `vscode-yak` 作为仅面向 VS Code 的扩展不同：后者可以使用 VS Code Provider API 和 ESM-only 发布物，本仓库不能以牺牲 tsserver 宿主兼容性来换取 ESM-only。
+
+- [x] 决定优先级：跨编辑器 tsserver/LSP 兼容性优先于 ESM-only 发布。
+- [x] 使用 `tsdown` 现代化构建；可复用核心模块可使用 ESM，但 npm 主入口必须保留 tsserver 能同步加载的 CommonJS 兼容桥与 `export = init` 契约。
+- [x] 不设置根包的 `"type": "module"`，也不将纯 ESM 文件作为 `main` 或 `typescriptServerPlugins` 的入口；这会使 tsserver 的同步 `require()` 加载失败。
+- [ ] 若未来维护 `vscode-styled-components`，应让其以 ESM 扩展直接复用抽出的 ESM 核心；本仓库的 CommonJS tsserver 入口作为跨编辑器适配层继续保留。
+- [ ] 若要发布 ESM-only 产品，应创建独立的核心库或 VS Code 扩展包，并明确其不再支持通用 tsserver 插件宿主，而不是破坏现有 npm 包的兼容契约。
+
 ### 借鉴 `vscode-yak`，但不照搬
 
 `vscode-yak` 的可借鉴点是按能力拆分模板解析/虚拟文档、补全、诊断、悬浮和代码操作，并将单元测试与宿主集成测试分层。其 `vscode` 扩展激活、语法注入、打包 VSIX、`vscode` 依赖和直接注册 Provider 的部分不适用于本 npm Server Plugin。
 
-- [ ] 维持 CommonJS 发布格式，直到 TypeScript Server Plugin 生态明确支持 ESM 加载；不要因构建工具现代化而先改为 ESM。
-- [ ] 保持 `export = init` 插件入口；将可复用逻辑放入具名 ES 模块，由入口做兼容性边界适配。
+- [ ] 维持 tsserver 主入口的 CommonJS 发布格式，直到 TypeScript Server Plugin 生态明确支持 ESM 加载；不要因构建工具现代化而先改为 ESM-only。
+- [ ] 保持 `export = init` 插件入口；将可复用逻辑放入具名 ESM 模块，由同步 CommonJS 入口做兼容性边界适配。
 - [ ] 以“虚拟 CSS 文档 + 源码偏移映射”为核心内部契约，集中处理位置、范围和编辑映射，避免每个 feature 重复转换。
 - [ ] 按功能拆分实现：`template/`、`virtual-document/`、`features/completions`、`features/diagnostics`、`features/hover`、`features/code-actions`、`features/folding`、`configuration/`、`tsserver/`。
 - [ ] 为每个功能注入窄接口（例如 CSS language service 的 `Pick` 类型），使单测不依赖真实 tsserver 进程。
@@ -49,7 +59,7 @@
 
 ## 阶段 1：测试先行与兼容矩阵
 
-- [x] 已将单元测试和 tsserver 端到端测试迁移至 Vitest，并保留端到端夹具的串行执行；后续补充覆盖率与测试分片策略。
+- [x] 已将单元测试和 tsserver 端到端测试迁移至 Vitest，并保留端到端夹具的串行执行；端到端夹具与用例已迁移为 TypeScript，支持 TypeScript 6 的 `Content-Length` 响应帧。
 - [ ] 让单测覆盖 `getSubstitutions`、配置合并、虚拟文档的 offset/position 双向映射、`keyframes` 包装、诊断范围映射、补全项转换、代码操作映射和折叠范围。
 - [ ] 为插值建立表格驱动的边界用例：嵌套模板、跨行插值、选择器、属性名、值加单位、连续插值、对象插值和不完整模板。
 - [ ] 调整端到端断言：验证关键项目、编辑范围、诊断代码/位置和无异常；删除对补全总数的硬编码，除非测试目的正是固定候选集合。
@@ -75,7 +85,7 @@
 
 ### 开发与工具依赖
 
-- [ ] 升级 `typescript` 至当前稳定主线前，先完成 TypeScript 5.x 最高稳定版验证；TypeScript 6.x 应作为单独兼容项目，不能和所有工具迁移混在一个 PR。
+- [x] 已升级根项目和 `test/e2e` workspace 至 TypeScript `~6.0.2`，并通过初始类型检查；后续以 tsserver 集成测试验证运行时兼容性。
 - [x] 已采用 `oxfmt` 和 `oxlint`，并将格式检查接入 CI；当前 9 条非阻断 warning 来自测试夹具和冗余转义，后续单独清理。
 - [x] 已移除 ESLint、Prettier 及 `eslint-plugin-prettier`；格式化通过独立 `format:check` 执行。
 - [ ] 将 `glob` 从开发依赖移除，前提是确认没有脚本或测试使用它；目前 `package.json` 脚本没有引用。
@@ -101,12 +111,12 @@
 
 ## 阶段 4：构建、包与 CI
 
-- [ ] 保持 `tsc` 作为第一轮构建工具；只有在需要双格式输出、打包依赖或显著缩短构建时，再单独评估 `tsdown`。TypeScript Server Plugin 的 CommonJS 兼容性优先于工具时髦度。
-- [ ] 增加 `tsc --noEmit` 类型检查，避免将类型检查与产物清理/输出绑定。
-- [ ] 在 `package.json` 添加 `exports`、`types` 和 `files` 的发布清单；先用 `npm pack --dry-run` 验证 `lib/index.js`、声明文件、许可证与 README 均在包内。
-- [ ] 确认是否保留 `src/api.ts` 的独立入口；若保留，给它定义稳定子路径导出并测试从打包产物导入。
+- [x] 使用 `tsdown` 替换 `tsc` 作为构建工具，产出 ESM 核心模块与 tsserver 所需 CommonJS 兼容入口；不将打包工具升级误解为 ESM-only 迁移。
+- [x] 已增加 `tsc --noEmit` 的 `typecheck` 命令，避免将类型检查与产物输出绑定。
+- [x] 在 `package.json` 添加 `exports`、`types` 和 `files` 的发布清单；`npm pack --dry-run` 已验证 `lib/index.cjs`、声明文件、许可证与 README 均在包内。
+- [x] 保留 `src/api.ts` 的独立入口，并通过 `./api` ESM 子路径导出打包产物。
 - [x] CI 已更新为当前稳定的 `actions/checkout`、`actions/setup-node`，使用 Corepack、`yarn install --immutable` 和 Yarn 缓存。
-- [ ] 合并或复用 CI job：至少执行 `format:check`、`lint`、`typecheck`、单测、端到端测试和 `npm pack --dry-run`。
+- [x] CI 执行 `format:check`、`lint`、`typecheck`、单测、端到端测试和 `npm pack --dry-run`。
 - [ ] 添加 TypeScript 版本矩阵与 OS 策略：日常 Linux 必跑，发布前或定期加入 Windows/macOS 端到端验证。
 - [ ] 设置发布工作流：tag 驱动、先 `verify`、使用 npm provenance、创建 GitHub Release、自动生成或校验 changelog。
 - [ ] 配置 Dependabot/Renovate、CodeQL（适用时）和 `npm audit` 的告警策略；高危生产依赖问题应阻止发布。

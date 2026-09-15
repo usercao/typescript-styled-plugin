@@ -1,10 +1,11 @@
-// @ts-check
-const path = require('path')
-const createServer = require('../server-fixture')
-const { openMockFile, getFirstResponseOfType } = require('./_helpers')
+import path from 'node:path'
 
-const createMockFileForServer = (fileContents, project) => {
-  project = project || 'project-fixture'
+import { assert, describe, it } from 'vitest'
+
+import createServer from '../server-fixture'
+import { getFirstResponseOfType, openMockFile } from './_helpers'
+
+const createMockFileForServer = (fileContents: string, project = 'project-fixture') => {
   const server = createServer(project)
   const mockFileName = path.join(__dirname, '..', project, 'main.ts')
   openMockFile(server, mockFileName, fileContents)

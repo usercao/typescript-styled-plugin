@@ -24,9 +24,20 @@
   "files": [
     "lib"
   ],
-  "main": "lib/index.js",
+  "main": "./lib/index.cjs",
+  "types": "./lib/index.d.cts",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.cts",
+      "require": "./lib/index.cjs"
+    },
+    "./api": {
+      "types": "./lib/esm/api.d.mts",
+      "import": "./lib/esm/api.mjs"
+    }
+  },
   "scripts": {
-    "compile": "tsc -p .",
+    "compile": "tsdown",
     "e2e": "yarn test:e2e",
     "format": "oxfmt --write .",
     "format:check": "oxfmt --check .",
@@ -35,8 +46,10 @@
     "test": "yarn test:unit && yarn test:e2e",
     "test:e2e": "yarn compile && vitest run test/e2e/tests",
     "test:unit": "vitest run test/unit",
+    "typecheck": "tsc --noEmit -p . && tsc --noEmit -p tsconfig.e2e.json",
     "unit": "yarn test:unit",
-    "watch:compile": "tsc --watch -p ."
+    "verify": "yarn format:check && yarn lint && yarn typecheck && yarn test && npm pack --dry-run",
+    "watch:compile": "tsdown --watch"
   },
   "dependencies": {
     "@vscode/emmet-helper": "2.9.2",
@@ -50,7 +63,8 @@
     "glob": "8.0.3",
     "oxfmt": "^0.68.0",
     "oxlint": "^1.83.0",
-    "typescript": "5.3.3",
+    "tsdown": "^0.23.0",
+    "typescript": "~6.0.2",
     "vite": "^8.3.0",
     "vitest": "^5.0.0"
   },

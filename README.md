@@ -402,12 +402,25 @@ yarn lint
 
 Use `yarn format` to apply the project formatting rules and `yarn lint:fix` to apply safe lint fixes.
 
+Check TypeScript sources and build the CommonJS tsserver entry plus the ESM API:
+
+```bash
+yarn typecheck
+yarn compile
+```
+
 The root Yarn workspace also installs the end-to-end test dependencies. Unit tests live in `test/unit`; tsserver integration tests and their fixtures live in `test/e2e`.
 
 Run all tests:
 
 ```bash
 yarn test
+```
+
+Run all local release checks, including the npm package contents:
+
+```bash
+yarn verify
 ```
 
 You can submit bug fixes and features through [pull requests](https://help.github.com/articles/about-pull-requests/). To get started, first checkout a new feature branch on your local repo:

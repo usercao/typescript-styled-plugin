@@ -1,7 +1,9 @@
-// @ts-check
-const path = require('path')
-const createServer = require('../server-fixture')
-const { openMockFile, getFirstResponseOfType } = require('./_helpers')
+import path from 'node:path'
+
+import { assert, describe, it } from 'vitest'
+
+import createServer from '../server-fixture'
+import { getFirstResponseOfType, openMockFile } from './_helpers'
 
 const mockFileName = path.join(__dirname, '..', 'project-fixture', 'main.ts')
 
@@ -10,7 +12,7 @@ const getSemanticDiagnosticsForFile = (fileContents) => {
   openMockFile(server, mockFileName, fileContents)
   server.sendCommand('semanticDiagnosticsSync', { file: mockFileName })
 
-  return server.close().then((_) => {
+  return server.close().then(() => {
     return getFirstResponseOfType('semanticDiagnosticsSync', server)
   })
 }

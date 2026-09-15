@@ -4,12 +4,13 @@
 >
 > 最后核对：2026-09-15
 >
-> 范围：`@styled/typescript-styled-plugin`。本项目只交付由 TypeScript Server 加载的语言服务插件，不是 VS Code 扩展，也不是独立 LSP server；v2 以 ESM-only 发布，依赖 Node 24.11+ 的 `require(ESM)` 互操作来满足 tsserver 的同步工厂加载契约。
+> 范围：`@styled/typescript-styled-plugin`。本项目是跨编辑器的 TypeScript Server 语言服务插件，面向所有符合 tsserver 插件加载契约的宿主；不是 VS Code 扩展，也不是独立 LSP server。v2 以 ESM-only 发布，依赖 Node 24.11+ 的 `require(ESM)` 互操作来满足 tsserver 的同步工厂加载契约。
 >
 > 宿主策略：VS Code 工作区 TypeScript 是首要验证环境，但不因此引入 `vscode` 生产依赖或扩展激活逻辑。Visual Studio、Sublime 等仅在实际宿主验证通过后，才可列为正式支持。
 
 ## 目标与原则
 
+- [x] 保持跨编辑器 tsserver 插件定位：不得引入仅适用于 VS Code 的运行时依赖、激活逻辑或 API，并持续维持同步插件加载契约。
 - [ ] 明确支持的宿主范围：以当前稳定版 TypeScript 与前一个主版本为基础，先验证 VS Code 的工作区 TypeScript；Visual Studio、Sublime 等宿主需分别验证后才列为正式支持。
 - [ ] 保持既有能力不回退：补全、补全详情、悬浮、语义诊断、代码修复、折叠、Emmet、插值替换与 `keyframes` 虚拟文档包装。
 - [ ] 先建回归安全网，再升级运行时依赖；不把“依赖可安装”当作“语言服务行为兼容”。
@@ -29,21 +30,21 @@
 
 ### 产品定位与模块格式决策
 
-本仓库的主产品是可由 TypeScript Server 宿主加载的语言服务插件，目标是让兼容 tsserver plugin 加载模型的宿主复用同一套 IntelliSense 能力。VS Code 是首要验证宿主，不是本包的运行时平台。这与仅面向 VS Code 的扩展不同：扩展可使用 Provider API 和 ESM-only 发布物；本仓库不能以牺牲 tsserver 宿主兼容性来换取这些能力。
+本仓库的主产品是跨编辑器、可由 TypeScript Server 宿主加载的语言服务插件，目标是让兼容 tsserver plugin 加载模型的宿主复用同一套 IntelliSense 能力。VS Code 是首要验证宿主，不是本包的运行时平台，也不定义本包的产品边界。这与仅面向 VS Code 的扩展不同：扩展可使用 Provider API；本包则以 Node 24.11+ 的 `require(ESM)` 互操作维持 tsserver 的同步加载契约。
 
-- [x] 决定优先级：跨 tsserver 宿主兼容性优先于 ESM-only 发布或 VS Code 专有能力。
+- [x] 决定优先级：维持 tsserver 的同步加载契约，并明确 ESM-only 发布所要求的 Node 宿主版本。
 - [x] 使用 `tsdown` 现代化构建并发布 ESM 入口；npm 主入口以 ESM `"module.exports"` 导出 tsserver 所需的同步工厂函数。
 - [x] 设置根包的 `"type": "module"`；只支持 Node 24.11+、无顶层 `await` 的 ESM 模块图，并通过标准 tsserver 集成测试验证 `require(ESM)` 加载。
-- [ ] 若未来维护 VS Code 扩展，应创建独立包或独立仓库，并仅复用已抽出的 ESM 核心；本包继续保留 CommonJS tsserver 适配层。
+- [ ] 若未来维护 VS Code 扩展，应创建独立包或独立仓库，并仅复用已抽出的 ESM 核心；不得改变本包的 tsserver 加载契约。
 - [ ] 若要发布 ESM-only 核心库或独立 LSP/VS Code 产品，应明确其支持范围，不得改变本包的 tsserver 插件加载契约。
 
 ### 借鉴 `vscode-yak`，但不照搬
 
 其他编辑器扩展可借鉴的仅是能力分层：模板解析/虚拟文档、补全、诊断、悬浮和代码操作，以及单元测试与宿主集成测试的分层。扩展激活、语法注入、打包 VSIX、`vscode` 依赖和直接注册 Provider 不属于本 npm tsserver 插件的范围。
 
-- [x] 维持 tsserver 主入口的 CommonJS 发布格式，直到 TypeScript Server Plugin 生态明确支持 ESM 加载；不要因构建工具现代化而先改为 ESM-only。
-- [x] 保持 `export = init` 插件入口；将可复用逻辑放入具名 ESM 模块，由同步 CommonJS 入口做兼容性边界适配。
-- [ ] 以“虚拟 CSS 文档 + 源码偏移映射”为核心内部契约，集中处理位置、范围和编辑映射，避免每个 feature 重复转换。
+- [x] 以 ESM `"module.exports"` 导出同步插件工厂；通过 Node 24.11+ 的 `require(ESM)` 互操作供 tsserver 加载。
+- [x] 保持可复用逻辑位于具名 ESM 模块，主入口仅负责 tsserver 工厂适配。
+- [x] 以“虚拟 CSS 文档 + 源码偏移映射”为核心内部契约；包装区映射统一视为无效并由调用方丢弃。
 - [ ] 按功能拆分实现：`template/`、`virtual-document/`、`features/completions`、`features/diagnostics`、`features/hover`、`features/code-actions`、`features/folding`、`configuration/`、`tsserver/`。
 - [ ] 为每个功能注入窄接口（例如 CSS language service 的 `Pick` 类型），使单测不依赖真实 tsserver 进程。
 - [x] 保留端到端 tsserver 测试作为宿主契约测试；若未来提供 VS Code 扩展，再新增独立包或独立仓库，不把 `vscode` 加进本插件的生产依赖。
@@ -63,10 +64,11 @@
 
 - [x] 已将单元测试和 tsserver 端到端测试迁移至 Vitest，并保留端到端夹具的串行执行；端到端夹具与用例已迁移为 TypeScript，支持 TypeScript 6 的 `Content-Length` 响应帧。
 - [x] 已覆盖 `getSubstitutions` 的主要边界、虚拟文档 offset/position 双向映射与 `keyframes` 包装，以及插值后的诊断和代码修复位置映射。
-- [ ] 补充配置合并、补全项转换、悬浮、折叠范围和无效映射边界的单测。
+- [ ] 补充配置合并、补全项转换、悬浮和折叠范围的单测。
+- [x] 补充虚拟文档无效映射边界单测。
 - [ ] 为插值补充尚未覆盖的对象插值和复杂嵌套模板边界；不完整模板继续以 tsserver 编辑态集成测试验证。
 - [x] 端到端断言已验证关键项目、编辑范围、诊断代码/位置和无异常；补全测试不再硬编码候选总数。
-- [ ] 在端到端夹具中分别使用“最低支持 TypeScript”“当前稳定 TypeScript”“下一主版本/夜ly”运行；夜ly 仅作允许失败的预警任务。
+- [ ] 在端到端夹具中分别使用“最低支持 TypeScript”“当前稳定 TypeScript”“下一主版本/nightly 每日构建”运行；nightly 每日构建仅作允许失败的预警任务。
 - [ ] 添加插件加载失败、无效配置、无效 TypeScript 版本与配置热更新的端到端覆盖。
 - [ ] 为真实 styled-components 常见写法扩充夹具：`styled.div`、`styled(Component)`、`css`、`keyframes`、`createGlobalStyle`、`.extend` 的历史兼容行为及 TSX 文件。
 - [ ] 明确 JavaScript/TypeScript/JSX/TSX 是否均为正式支持，并在每种脚本模式至少保留一个端到端案例。
@@ -89,7 +91,7 @@
 ### 开发与工具依赖
 
 - [x] 已升级根项目和 `test/e2e` workspace 至 TypeScript `~6.0.2`，并通过初始类型检查；后续以 tsserver 集成测试验证运行时兼容性。
-- [x] 已采用 `oxfmt` 和 `oxlint`，并将格式检查接入 CI；当前 9 条非阻断 warning 来自测试夹具和冗余转义，后续单独清理。
+- [x] 已采用 `oxfmt` 和 `oxlint`，并将格式检查接入 CI；测试夹具和冗余转义的历史 warning 已清理。
 - [x] 已移除 ESLint、Prettier 及 `eslint-plugin-prettier`；格式化通过独立 `format:check` 执行。
 - [x] 移除未使用的 `glob` 开发依赖；确认没有脚本或测试使用它。
 - [x] 已升级 `@types/node` 至 Vitest 所需版本，并移除 Chai、Mocha 及其类型；`yarn.lock` 中的 Chai 仅为 Vitest 的传递依赖。
@@ -101,22 +103,22 @@
 ## 阶段 3：实现重构
 
 - [ ] 创建新的内部模块结构，但先通过 re-export 保持 `src/api.ts` 的公开导出不变。
-- [ ] 将 `StyledVirtualDocumentFactory` 改为基于标准 `TextDocument.create` 的不可变虚拟文档对象，统一保存前缀长度、源起点和可映射范围。
-- [ ] 为 offset/range 映射增加明确的无效范围处理：虚拟包装前后位置、插值掩码位置、文档末尾和多行边界不得映射到源码外。
-- [ ] 将补全缓存键改为显式值对象（文件、文档版本/文本、位置、配置）；配置变更时清除缓存，避免旧配置的候选被复用。
+- [x] 将 `StyledVirtualDocumentFactory` 改为基于标准 `TextDocument.create` 的不可变虚拟文档对象。
+- [x] 为包装区 offset/range 映射增加明确的无效范围处理；诊断、悬浮、代码操作和折叠范围不得映射到源码外。
+- [x] 配置变更时清除补全缓存，避免旧配置的候选被复用；文档版本仍可在后续性能优化中纳入缓存键。
 - [ ] 将 CSS 和 SCSS 服务初始化、配置更新、Emmet 调用包装为可替换的运行时依赖，消除 feature 类中的全局状态耦合。
 - [ ] 检查 `validate: false` 是否实际阻断语义诊断；补足测试并修正不一致行为，作为有记录的 bug fix。
 - [ ] 重新审查标签识别策略：当前按标签名工作；决定是否保持兼容、是否新增导入来源识别，以及对 `styled-components` v6、Emotion 等库的明确策略。
-- [ ] 为对外 API 加入 API 兼容测试；如果需要破坏性变更，升级主版本并提供迁移说明。
+- [x] 为对外 API 加入构建产物的 TypeScript 消费测试；如果需要破坏性变更，升级主版本并提供迁移说明。
 - [ ] 评估性能：在大型模板、多个插值和连续补全请求下记录延迟与内存；仅在基线证明问题后引入缓存或增量解析优化。
 
 验收：模块边界与测试目录对应；行为保持与阶段 1 的快照/端到端契约一致；对 TypeScript 内部行为的依赖必须被隔离、记录并由宿主兼容测试保护。
 
 ## 阶段 4：构建、包与 CI
 
-- [x] 使用 `tsdown` 替换 `tsc` 作为构建工具，产出 ESM 核心模块与 tsserver 所需 CommonJS 兼容入口；不将打包工具升级误解为 ESM-only 迁移。
+- [x] 使用 `tsdown` 替换 `tsc` 作为构建工具，产出 ESM 核心模块与通过 `require(ESM)` 加载的 tsserver 入口。
 - [x] 已增加 `tsc --noEmit` 的 `typecheck` 命令，避免将类型检查与产物输出绑定。
-- [x] 在 `package.json` 添加 `exports`、`types` 和 `files` 的发布清单；`npm pack --dry-run` 已验证 `lib/index.cjs`、声明文件、许可证与 README 均在包内。
+- [x] 在 `package.json` 添加 `exports`、`types` 和 `files` 的发布清单；`npm pack --dry-run` 已验证 ESM 入口、声明文件、许可证与 README 均在包内。
 - [x] 保留 `src/api.ts` 的独立入口，并通过 `./api` ESM 子路径导出打包产物。
 - [x] CI 已更新为当前稳定的 `actions/checkout`、`actions/setup-node`，使用 Corepack、`yarn install --immutable` 和 Yarn 缓存。
 - [x] CI 执行 `format:check`、`lint`、`typecheck`、单测、端到端测试和 `npm pack --dry-run`。
@@ -128,8 +130,8 @@
 
 ## 阶段 5：文档、社区与发布
 
-- [ ] 更新 README 的最低 TypeScript 版本（当前文字仍写“2.4 or later”，而代码检查为主版本 >= 3），补充实际支持矩阵和已验证编辑器。
-- [ ] 用当前 VS Code 与其他已验证宿主的文档替换陈旧链接，核实 `tsconfig.json`/`jsconfig.json` 配置结论；不把未验证宿主写入支持范围。
+- [x] 更新 README 的最低 TypeScript 与 Node 版本，补充实际支持范围和已验证编辑器。
+- [x] 用当前 VS Code 文档替换陈旧链接，不把未验证宿主写入支持范围。
 - [ ] 为 `tags`、`validate`、`lint`、`emmet` 提供完整类型、默认值、示例与配置变更说明。
 - [ ] 增加 `CONTRIBUTING.md`：环境版本、安装、`verify`、夹具测试、调试 tsserver、变更日志规则与发布流程。
 - [ ] 添加 issue/PR 模板：最小复现、宿主与 TypeScript 版本、插件配置、预期/实际诊断或补全内容。

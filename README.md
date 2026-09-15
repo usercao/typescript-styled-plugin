@@ -1,6 +1,6 @@
 # TypeScript Styled Plugin
 
-TypeScript server plugin that adds intellisense to [styled component](https://styled-components.com) css strings
+Cross-editor TypeScript Server plugin that adds intellisense to [styled component](https://styled-components.com) css strings
 
 ![](documentation/preview.gif)
 
@@ -14,13 +14,13 @@ TypeScript server plugin that adds intellisense to [styled component](https://st
 
 ## Usage
 
-This plugin requires TypeScript 2.4 or later. It can provide intellisense in both JavaScript and TypeScript files within any editor that uses TypeScript to power their language features. This includes [VS Code](https://code.visualstudio.com), [Sublime with the TypeScript plugin](https://github.com/Microsoft/TypeScript-Sublime-Plugin), [Atom with the TypeScript plugin](https://atom.io/packages/atom-typescript), [Visual Studio](https://www.visualstudio.com), and others.
+This plugin works with editors that load TypeScript Server plugins; cross-editor tsserver compatibility is a core project constraint. Version 2 requires TypeScript 6 or later and a tsserver host running Node.js 24.11.0 or later. It is published as ESM-only and depends on Node's synchronous `require(ESM)` interoperability. The VS Code workspace TypeScript host is covered by this repository's integration suite; use the same runtime requirements when configuring other tsserver hosts. See [the compatibility notes](docs/esm-v2-compatibility.md) for details.
 
 ### With VS Code
 
 Just install the [VS Code Styled Components extension](https://github.com/styled-components/vscode-styled-components). This extension adds syntax highlighting and IntelliSense for styled components in JavaScript and TypeScript files.
 
-If you are using a [workspace version of TypeScript](<(https://code.visualstudio.com/Docs/languages/typescript#_using-newer-typescript-versions)>) however, you must manually install the plugin along side the version of TypeScript in your workspace:
+When using a [workspace version of TypeScript](https://code.visualstudio.com/docs/typescript/typescript-compiling#_using-newer-typescript-versions), install the plugin alongside TypeScript in that workspace:
 
 ```bash
 npm install --save-dev @styled/typescript-styled-plugin typescript
@@ -40,51 +40,17 @@ Then add a `plugins` section to your [`tsconfig.json`](http://www.typescriptlang
 }
 ```
 
-Finally, run the `Select TypeScript version` command in VS Code to switch to use the workspace version of TypeScript for VS Code's JavaScript and TypeScript language support. You can find more information about managing typescript versions [in the VS Code documentation](https://code.visualstudio.com/Docs/languages/typescript#_using-newer-typescript-versions).
+Finally, run the `Select TypeScript version` command in VS Code to switch to the workspace TypeScript version for JavaScript and TypeScript language support.
 
-### With Sublime
+### With Sublime Text
 
-This plugin works with the [Sublime TypeScript plugin](https://github.com/Microsoft/TypeScript-Sublime-Plugin).
-
-First install the plugin and a copy of TypeScript in your workspace:
+Install the plugin and TypeScript in the project workspace:
 
 ```bash
 npm install --save-dev @styled/typescript-styled-plugin typescript
 ```
 
-And configure Sublime to use the workspace version of TypeScript by [setting the `typescript_tsdk`](https://github.com/Microsoft/TypeScript-Sublime-Plugin#note-using-different-versions-of-typescript) setting in Sublime:
-
-```json
-{
-  "typescript_tsdk": "/Users/matb/my-amazing-project/node_modules/typescript/lib"
-}
-```
-
-Finally add a `plugins` section to your [`tsconfig.json`](http://www.typescriptlang.org/docs/handbook/tsconfig-json.html) or [`jsconfig.json`](https://code.visualstudio.com/Docs/languages/javascript#_javascript-project-jsconfigjson) and restart Sublime.
-
-```json
-{
-  "compilerOptions": {
-    "plugins": [
-      {
-        "name": "typescript-styled-plugin"
-      }
-    ]
-  }
-}
-```
-
-### With Visual Studio
-
-This plugin works [Visual Studio 2022](https://www.visualstudio.com) using the TypeScript 4.9+ SDK.
-
-First install the plugin in your project:
-
-```bash
-npm install --save-dev @styled/typescript-styled-plugin
-```
-
-Then add a `plugins` section to your [`tsconfig.json`](http://www.typescriptlang.org/docs/handbook/tsconfig-json.html).
+Configure the Sublime TypeScript plugin to use that workspace's TypeScript SDK, then add the plugin to the project's `tsconfig.json` or `jsconfig.json`:
 
 ```json
 {
@@ -98,7 +64,29 @@ Then add a `plugins` section to your [`tsconfig.json`](http://www.typescriptlang
 }
 ```
 
-Then reload your project to make sure the plugin has been loaded properly. Note that `jsconfig.json` projects are currently not supported in VS.
+The Sublime TypeScript plugin's Node runtime must meet the Version 2 compatibility requirements above.
+
+### With Visual Studio
+
+Install the package in the project and add the same `plugins` configuration to `tsconfig.json`:
+
+```bash
+npm install --save-dev @styled/typescript-styled-plugin typescript
+```
+
+```json
+{
+  "compilerOptions": {
+    "plugins": [
+      {
+        "name": "@styled/typescript-styled-plugin"
+      }
+    ]
+  }
+}
+```
+
+Visual Studio must use a TypeScript Server host with TypeScript 6 and Node.js 24.11.0 or newer. Older bundled Node runtimes cannot load the ESM-only Version 2 package.
 
 ## Configuration
 
@@ -402,7 +390,7 @@ yarn lint
 
 Use `yarn format` to apply the project formatting rules and `yarn lint:fix` to apply safe lint fixes.
 
-Check TypeScript sources and build the CommonJS tsserver entry plus the ESM API:
+Check TypeScript sources and build the ESM tsserver entry plus the ESM API:
 
 ```bash
 yarn typecheck
@@ -415,6 +403,12 @@ Run all tests:
 
 ```bash
 yarn test
+```
+
+Validate the generated public API declarations:
+
+```bash
+yarn test:package-api
 ```
 
 Run all local release checks, including the npm package contents:

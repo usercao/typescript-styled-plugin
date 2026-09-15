@@ -87,7 +87,7 @@ function getSubstitution(context: {
   // `
   //
   // Replace with fake property name
-  if (context.post.match(/^\s*[:]/) && !context.post.match(/^\s*[:].+?[\{&]/)) {
+  if (context.post.match(/^\s*[:]/) && !context.post.match(/^\s*[:].+?[{&]/)) {
     return '$a' + result.slice(2)
   }
 
@@ -99,7 +99,7 @@ function getSubstitution(context: {
   //     }
   // `
   // Replace with fake selector
-  if (context.post.match(/^\s*[:].+?[\{&]/)) {
+  if (context.post.match(/^\s*[:].+?[{&]/)) {
     return '&' + ' '.repeat(result.length - 1)
   }
 

@@ -7,12 +7,14 @@ export default defineConfig({
     'esm/api': 'src/api.ts',
   },
   deps: {
+    dts: {
+      neverBundle: [/^typescript(?:\/|$)/],
+    },
     onlyBundle: false,
   },
   fixedExtension: true,
   format: 'esm',
   outDir: 'lib',
   platform: 'node',
-  sourcemap: true,
   target: 'node24',
 })

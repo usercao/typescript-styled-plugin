@@ -33,6 +33,35 @@ describe('StyledVirtualDocumentFactory', () => {
       '@keyframes custom {\n0% { opacity: 0; }\n}',
     )
   })
+
+  it('should only map the template body back from the virtual document', () => {
+    const context = createContext('css', 'color: red;')
+    const factory = new StyledVirtualDocumentFactory(ts)
+    const wrapperLength = factory.getVirtualDocumentWrapper(context).length
+
+    assert.strictEqual(factory.fromVirtualDocOffset(wrapperLength - 1, context), undefined)
+    assert.strictEqual(factory.fromVirtualDocOffset(wrapperLength, context), 0)
+    assert.strictEqual(
+      factory.fromVirtualDocOffset(wrapperLength + context.text.length, context),
+      context.text.length,
+    )
+    assert.strictEqual(
+      factory.fromVirtualDocOffset(wrapperLength + context.text.length + 1, context),
+      undefined,
+    )
+    assert.strictEqual(
+      factory.fromVirtualDocPosition({ line: 0, character: 0 }, context),
+      undefined,
+    )
+    assert.deepEqual(factory.fromVirtualDocPosition({ line: 1, character: 0 }, context), {
+      line: 0,
+      character: 0,
+    })
+    assert.strictEqual(
+      factory.fromVirtualDocPosition({ line: 2, character: 0 }, context),
+      undefined,
+    )
+  })
 })
 
 function createContext(tagName: string, text: string): TemplateContext {

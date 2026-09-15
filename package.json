@@ -5,6 +5,7 @@
   "keywords": [
     "TypeScript",
     "css",
+    "css-in-js",
     "styled",
     "styled components",
     "styled-components"
@@ -47,10 +48,11 @@
     "lint:fix": "oxlint --fix .",
     "test": "yarn test:unit && yarn test:e2e",
     "test:e2e": "yarn compile && vitest run test/e2e/tests --configLoader runner",
+    "test:package-api": "yarn compile && tsc --noEmit -p test/package-api",
     "test:unit": "vitest run test/unit --configLoader runner",
     "typecheck": "tsc --noEmit -p . && tsc --noEmit -p test/e2e",
     "unit": "yarn test:unit",
-    "verify": "yarn format:check && yarn lint && yarn typecheck && yarn test && npm pack --dry-run",
+    "verify": "yarn format:check && yarn lint && yarn typecheck && yarn test && yarn test:package-api && npm pack --dry-run",
     "watch:compile": "tsdown --watch"
   },
   "dependencies": {
@@ -68,10 +70,6 @@
     "typescript": "~6.0.2",
     "vite": "^8.3.0",
     "vitest": "^5.0.0"
-  },
-  "resolutions": {
-    "vscode-languageserver-textdocument": "1.0.11",
-    "vscode-languageserver-types": "3.17.5"
   },
   "engines": {
     "node": ">=24.11.0"

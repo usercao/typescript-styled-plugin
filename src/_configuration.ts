@@ -18,36 +18,32 @@ export class ConfigurationManager {
     emmet: {},
   }
 
-  private readonly _configUpdatedListeners = new Set<() => void>()
+  private readonly configUpdatedListeners = new Set<() => void>()
 
   public get config(): StyledPluginConfiguration {
-    return this._configuration
+    return this.configuration
   }
-  private _configuration: StyledPluginConfiguration = ConfigurationManager.defaultConfiguration
+  private configuration: StyledPluginConfiguration = ConfigurationManager.defaultConfiguration
 
   public updateFromPluginConfig(config: Partial<StyledPluginConfiguration>) {
-    const lint = Object.assign(
-      {},
-      ConfigurationManager.defaultConfiguration.lint,
-      config.lint || {},
-    )
-
-    this._configuration = {
-      tags: config.tags || ConfigurationManager.defaultConfiguration.tags,
-      validate:
-        typeof config.validate !== 'undefined'
-          ? config.validate
-          : ConfigurationManager.defaultConfiguration.validate,
-      lint,
-      emmet: config.emmet || ConfigurationManager.defaultConfiguration.emmet,
+    const lint = {
+      ...ConfigurationManager.defaultConfiguration.lint,
+      ...config.lint,
     }
 
-    for (const listener of this._configUpdatedListeners) {
+    this.configuration = {
+      tags: config.tags ?? ConfigurationManager.defaultConfiguration.tags,
+      validate: config.validate ?? ConfigurationManager.defaultConfiguration.validate,
+      lint,
+      emmet: config.emmet ?? ConfigurationManager.defaultConfiguration.emmet,
+    }
+
+    for (const listener of this.configUpdatedListeners) {
       listener()
     }
   }
 
   public onUpdatedConfig(listener: () => void) {
-    this._configUpdatedListeners.add(listener)
+    this.configUpdatedListeners.add(listener)
   }
 }

@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 import { TemplateContext } from 'typescript-template-language-service-decorator'
 import type * as ts from 'typescript/lib/tsserverlibrary'
-import { TextDocument, Position } from 'vscode-languageserver-textdocument'
+import { TextDocument } from 'vscode-languageserver-textdocument'
 
 /**
  * Handles mapping between template contents to virtual documents.
@@ -10,9 +10,12 @@ import { TextDocument, Position } from 'vscode-languageserver-textdocument'
 export interface VirtualDocumentProvider {
   createVirtualDocument(context: TemplateContext): TextDocument
   toVirtualDocPosition(position: ts.LineAndCharacter): ts.LineAndCharacter
-  fromVirtualDocPosition(position: ts.LineAndCharacter): ts.LineAndCharacter
+  fromVirtualDocPosition(
+    position: ts.LineAndCharacter,
+    context: TemplateContext,
+  ): ts.LineAndCharacter | undefined
   toVirtualDocOffset(offset: number, context: TemplateContext): number
-  fromVirtualDocOffset(offset: number, context: TemplateContext): number
+  fromVirtualDocOffset(offset: number, context: TemplateContext): number | undefined
   getVirtualDocumentWrapper(context: TemplateContext): string
 }
 
@@ -30,21 +33,7 @@ export class StyledVirtualDocumentFactory implements VirtualDocumentProvider {
 
   public createVirtualDocument(context: TemplateContext): TextDocument {
     const contents = `${this.getVirtualDocumentWrapper(context)}${context.text}\n}`
-    return {
-      uri: 'untitled://embedded.scss',
-      languageId: 'scss',
-      version: 1,
-      getText: () => contents,
-      positionAt: (offset: number) => {
-        const pos = context.toPosition(this.fromVirtualDocOffset(offset, context))
-        return this.toVirtualDocPosition(pos)
-      },
-      offsetAt: (p: Position) => {
-        const offset = context.toOffset(this.fromVirtualDocPosition(p))
-        return this.toVirtualDocOffset(offset, context)
-      },
-      lineCount: contents.split(/\n/g).length,
-    }
+    return TextDocument.create('untitled://embedded.scss', 'scss', 1, contents)
   }
 
   public toVirtualDocPosition(position: ts.LineAndCharacter): ts.LineAndCharacter {
@@ -54,19 +43,30 @@ export class StyledVirtualDocumentFactory implements VirtualDocumentProvider {
     }
   }
 
-  public fromVirtualDocPosition(position: ts.LineAndCharacter): ts.LineAndCharacter {
-    return {
+  public fromVirtualDocPosition(
+    position: ts.LineAndCharacter,
+    context: TemplateContext,
+  ): ts.LineAndCharacter | undefined {
+    const sourcePosition = {
       line: position.line - 1,
       character: position.character,
     }
+    const offset = context.toOffset(sourcePosition)
+    const mappedPosition = context.toPosition(offset)
+    return offset >= 0 &&
+      offset <= context.text.length &&
+      positionsEqual(sourcePosition, mappedPosition)
+      ? sourcePosition
+      : undefined
   }
 
   public toVirtualDocOffset(offset: number, context: TemplateContext): number {
     return offset + this.getVirtualDocumentWrapper(context).length
   }
 
-  public fromVirtualDocOffset(offset: number, context: TemplateContext): number {
-    return offset - this.getVirtualDocumentWrapper(context).length
+  public fromVirtualDocOffset(offset: number, context: TemplateContext): number | undefined {
+    const sourceOffset = offset - this.getVirtualDocumentWrapper(context).length
+    return sourceOffset >= 0 && sourceOffset <= context.text.length ? sourceOffset : undefined
   }
 
   public getVirtualDocumentWrapper(context: TemplateContext): string {
@@ -77,4 +77,8 @@ export class StyledVirtualDocumentFactory implements VirtualDocumentProvider {
       ? StyledVirtualDocumentFactory.wrapperPreKeyframes
       : StyledVirtualDocumentFactory.wrapperPreRoot
   }
+}
+
+function positionsEqual(left: ts.LineAndCharacter, right: ts.LineAndCharacter): boolean {
+  return left.line === right.line && left.character === right.character
 }

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Remove redundant `unit` and `e2e` script aliases.
 - Move TypeScript aliases used only by tsserver integration tests into the E2E workspace.
 - Remove the minimum-TypeScript test alias and CI matrix entry; document the TypeScript 6.0.2 minimum requirement before installation.
 - Remove the TypeScript nightly test dependency and CI pre-warning job; retain current stable TypeScript compatibility coverage.

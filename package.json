@@ -41,7 +41,6 @@
   },
   "scripts": {
     "compile": "tsdown",
-    "e2e": "yarn test:e2e",
     "format": "oxfmt --write .",
     "format:check": "oxfmt --check .",
     "lint": "oxlint .",
@@ -52,7 +51,6 @@
     "test:package-api": "yarn compile && tsc --noEmit -p test/package-api",
     "test:unit": "vitest run test/unit --configLoader runner",
     "typecheck": "tsc --noEmit -p . && tsc --noEmit -p test/e2e",
-    "unit": "yarn test:unit",
     "verify": "yarn format:check && yarn lint && yarn typecheck && yarn test && yarn test:package-api && npm pack --dry-run",
     "watch:compile": "tsdown --watch"
   },

@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 import { TemplateContext } from 'typescript-template-language-service-decorator'
-import * as ts from 'typescript/lib/tsserverlibrary'
+import type * as ts from 'typescript/lib/tsserverlibrary'
 import { TextDocument, Position } from 'vscode-languageserver-textdocument'
 
 /**
@@ -25,6 +25,8 @@ export interface VirtualDocumentProvider {
 export class StyledVirtualDocumentFactory implements VirtualDocumentProvider {
   private static readonly wrapperPreRoot = ':root{\n'
   private static readonly wrapperPreKeyframes = '@keyframes custom {\n'
+
+  constructor(private readonly typescript: typeof ts) {}
 
   public createVirtualDocument(context: TemplateContext): TextDocument {
     const contents = `${this.getVirtualDocumentWrapper(context)}${context.text}\n}`
@@ -69,8 +71,9 @@ export class StyledVirtualDocumentFactory implements VirtualDocumentProvider {
 
   public getVirtualDocumentWrapper(context: TemplateContext): string {
     const parent = context.node.parent
-    const tag = parent && ts.isTaggedTemplateExpression(parent) ? parent.tag : undefined
-    return tag && ts.isIdentifier(tag) && tag.escapedText === 'keyframes'
+    const tag =
+      parent && this.typescript.isTaggedTemplateExpression(parent) ? parent.tag : undefined
+    return tag && this.typescript.isIdentifier(tag) && tag.escapedText === 'keyframes'
       ? StyledVirtualDocumentFactory.wrapperPreKeyframes
       : StyledVirtualDocumentFactory.wrapperPreRoot
   }

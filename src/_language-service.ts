@@ -9,7 +9,7 @@ import {
   TemplateContext,
   TemplateLanguageService,
 } from 'typescript-template-language-service-decorator'
-import * as ts from 'typescript/lib/tsserverlibrary'
+import type * as ts from 'typescript/lib/tsserverlibrary'
 import {
   FoldingRange,
   LanguageService,

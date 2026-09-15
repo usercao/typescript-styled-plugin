@@ -24,12 +24,14 @@
   "files": [
     "lib"
   ],
-  "main": "./lib/index.cjs",
-  "types": "./lib/index.d.cts",
+  "type": "module",
+  "main": "./lib/index.mjs",
+  "types": "./lib/index.d.mts",
   "exports": {
     ".": {
-      "types": "./lib/index.d.cts",
-      "require": "./lib/index.cjs"
+      "types": "./lib/index.d.mts",
+      "import": "./lib/index.mjs",
+      "require": "./lib/index.mjs"
     },
     "./api": {
       "types": "./lib/esm/api.d.mts",
@@ -59,7 +61,7 @@
     "vscode-languageserver-types": "3.18.3"
   },
   "devDependencies": {
-    "@types/node": "^24.0.0",
+    "@types/node": "^24",
     "oxfmt": "^0.68.0",
     "oxlint": "^1.83.0",
     "tsdown": "^0.23.0",
@@ -72,7 +74,7 @@
     "vscode-languageserver-types": "3.17.5"
   },
   "engines": {
-    "node": ">=24.20.0"
+    "node": ">=24.11.0"
   },
   "packageManager": "yarn@4.18.0"
 }

@@ -1,28 +1,18 @@
 import { defineConfig } from 'tsdown'
 
-export default defineConfig([
-  {
-    dts: true,
-    entry: {
-      index: 'src/index.ts',
-    },
-    fixedExtension: true,
-    format: 'cjs',
-    outDir: 'lib',
-    platform: 'node',
-    sourcemap: true,
-    target: 'node24',
+export default defineConfig({
+  dts: true,
+  entry: {
+    index: 'src/index.ts',
+    'esm/api': 'src/api.ts',
   },
-  {
-    dts: true,
-    entry: {
-      api: 'src/api.ts',
-    },
-    fixedExtension: true,
-    format: 'esm',
-    outDir: 'lib/esm',
-    platform: 'node',
-    sourcemap: true,
-    target: 'node24',
+  deps: {
+    onlyBundle: false,
   },
-])
+  fixedExtension: true,
+  format: 'esm',
+  outDir: 'lib',
+  platform: 'node',
+  sourcemap: true,
+  target: 'node24',
+})

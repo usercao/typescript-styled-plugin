@@ -4,7 +4,7 @@
 >
 > 最后核对：2026-09-15
 >
-> 范围：`@styled/typescript-styled-plugin`。本项目只交付由 TypeScript Server 同步加载的语言服务插件，不是 VS Code 扩展，也不是独立 LSP server；现代化必须保持 CommonJS `export = init` 入口和 tsserver 宿主兼容性，不能直接照搬扩展的 `vscode` 运行时 API。
+> 范围：`@styled/typescript-styled-plugin`。本项目只交付由 TypeScript Server 加载的语言服务插件，不是 VS Code 扩展，也不是独立 LSP server；v2 以 ESM-only 发布，依赖 Node 24.11+ 的 `require(ESM)` 互操作来满足 tsserver 的同步工厂加载契约。
 >
 > 宿主策略：VS Code 工作区 TypeScript 是首要验证环境，但不因此引入 `vscode` 生产依赖或扩展激活逻辑。Visual Studio、Sublime 等仅在实际宿主验证通过后，才可列为正式支持。
 
@@ -18,7 +18,7 @@
 
 ## 已确认的现状
 
-- [x] 入口为 `src/index.ts`，以 `export =` 导出 TypeScript Server Plugin 工厂；`src/api.ts` 另提供可被其他库消费的 API。
+- [x] 入口为 `src/index.ts`，以 ESM `"module.exports"` 导出 TypeScript Server Plugin 工厂；`src/api.ts` 另提供可被其他库消费的 API。
 - [x] 核心流程为 `StyledPlugin` -> `typescript-template-language-service-decorator` -> `StyledTemplateLanguageService`；后者将标签模板映射为虚拟 SCSS 文档，再调用 CSS/SCSS 语言服务。
 - [x] 插值替换、虚拟文档映射、TypeScript API 转换和 CSS 功能实现目前分散于少量源文件；这是可逐步拆分的良好起点。
 - [x] 已有位于 `test/unit` 的单元测试和位于 `test/e2e` 的 `tsserver` 集成测试；补全测试已改为关键候选、过滤项和类型修饰符等语义断言。
@@ -32,8 +32,8 @@
 本仓库的主产品是可由 TypeScript Server 宿主加载的语言服务插件，目标是让兼容 tsserver plugin 加载模型的宿主复用同一套 IntelliSense 能力。VS Code 是首要验证宿主，不是本包的运行时平台。这与仅面向 VS Code 的扩展不同：扩展可使用 Provider API 和 ESM-only 发布物；本仓库不能以牺牲 tsserver 宿主兼容性来换取这些能力。
 
 - [x] 决定优先级：跨 tsserver 宿主兼容性优先于 ESM-only 发布或 VS Code 专有能力。
-- [x] 使用 `tsdown` 现代化构建；可复用核心模块可使用 ESM，但 npm 主入口必须保留 tsserver 能同步加载的 CommonJS 兼容桥与 `export = init` 契约。
-- [x] 不设置根包的 `"type": "module"`，也不将纯 ESM 文件作为 `main` 或 `typescriptServerPlugins` 的入口；这会使 tsserver 的同步 `require()` 加载失败。
+- [x] 使用 `tsdown` 现代化构建并发布 ESM 入口；npm 主入口以 ESM `"module.exports"` 导出 tsserver 所需的同步工厂函数。
+- [x] 设置根包的 `"type": "module"`；只支持 Node 24.11+、无顶层 `await` 的 ESM 模块图，并通过标准 tsserver 集成测试验证 `require(ESM)` 加载。
 - [ ] 若未来维护 VS Code 扩展，应创建独立包或独立仓库，并仅复用已抽出的 ESM 核心；本包继续保留 CommonJS tsserver 适配层。
 - [ ] 若要发布 ESM-only 核心库或独立 LSP/VS Code 产品，应明确其支持范围，不得改变本包的 tsserver 插件加载契约。
 
@@ -50,7 +50,7 @@
 
 ## 阶段 0：基线与治理
 
-- [x] 已声明 Yarn 4 与最低 Node 24.20.0 版本；后续可补充 `.nvmrc` 或等效版本文件以方便本地切换。
+- [x] 已声明 Yarn 4 与最低 Node 24.11.0 版本；后续可补充 `.nvmrc` 或等效版本文件以方便本地切换。
 - [x] 使用支持的 Node LTS 执行 `yarn install --immutable`，确认根 workspace（包含 `test/e2e` 夹具）能从零安装。
 - [x] 已建立 `format`、`format:check`、`lint`、`lint:fix`、`compile`、`unit`、`e2e`、`typecheck`、`test` 与串联发布前检查的 `verify` 命令。
 - [ ] 执行并记录当前基线：Node/npm/TypeScript 版本、`npm audit`、构建产物文件列表、单测/端到端测试结果、npm 包体积和 `npm pack --dry-run` 清单。

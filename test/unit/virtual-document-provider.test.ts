@@ -7,7 +7,7 @@ import { StyledVirtualDocumentFactory } from '../../src/_virtual-document-provid
 describe('StyledVirtualDocumentFactory', () => {
   it('should wrap normal templates in a root rule and map positions in both directions', () => {
     const context = createContext('css', 'color: red;\nmargin: 0;')
-    const factory = new StyledVirtualDocumentFactory()
+    const factory = new StyledVirtualDocumentFactory(ts)
     const document = factory.createVirtualDocument(context)
 
     assert.strictEqual(document.getText(), ':root{\ncolor: red;\nmargin: 0;\n}')
@@ -26,7 +26,7 @@ describe('StyledVirtualDocumentFactory', () => {
 
   it('should wrap keyframes templates in a keyframes rule', () => {
     const context = createContext('keyframes', '0% { opacity: 0; }')
-    const factory = new StyledVirtualDocumentFactory()
+    const factory = new StyledVirtualDocumentFactory(ts)
 
     assert.strictEqual(
       factory.createVirtualDocument(context).getText(),

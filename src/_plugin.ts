@@ -4,7 +4,7 @@ import {
   decorateWithTemplateLanguageService,
   TemplateSettings,
 } from 'typescript-template-language-service-decorator'
-import * as ts from 'typescript/lib/tsserverlibrary'
+import type * as ts from 'typescript/lib/tsserverlibrary'
 
 import { ConfigurationManager, StyledPluginConfiguration } from './_configuration'
 import { StyledTemplateLanguageService } from './_language-service'
@@ -25,7 +25,7 @@ export class StyledPlugin {
     this._logger.log('config: ' + JSON.stringify(this._configManager.config))
 
     if (!isValidTypeScriptVersion(this.typescript)) {
-      this._logger.log('Invalid typescript version detected. TypeScript 3.x required.')
+      this._logger.log('Invalid TypeScript version detected. TypeScript 6.x required.')
       return info.languageService
     }
 
@@ -36,7 +36,7 @@ export class StyledPlugin {
       new StyledTemplateLanguageService(
         this.typescript,
         this._configManager,
-        new StyledVirtualDocumentFactory(),
+        new StyledVirtualDocumentFactory(this.typescript),
         this._logger,
       ),
       getTemplateSettings(this._configManager),
@@ -66,5 +66,5 @@ export function getTemplateSettings(configManager: ConfigurationManager): Templa
 
 function isValidTypeScriptVersion(typescript: typeof ts): boolean {
   const [major] = typescript.version.split('.')
-  return +major >= 3
+  return +major >= 6
 }

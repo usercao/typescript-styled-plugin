@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Prepare the breaking v2 ESM-only tsserver plugin release for TypeScript 6+ and Node 24.11+ hosts.
 - Upgrade the VS Code language-service dependencies to their latest stable releases.
 - Clarify the tsserver-plugin scope and host-compatibility roadmap.
 - Remove the unused `glob` development dependency.

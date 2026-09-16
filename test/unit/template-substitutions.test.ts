@@ -151,11 +151,67 @@ describe('substituter', () => {
     )
   })
 
-  it('should replace an interpolation in a custom property name', () => {
-    const placeholder = '${name}'
+  it.each([
+    '--${name}',
+    '--theme-${name}',
+    '--${namespace}-${name}',
+    ':root { --${name}',
+    'color: red; --${name}',
+    '--føø-${name}',
+    '--\\66 oo-${name}',
+  ])('should replace an interpolation in the custom property name %s', (propertyName) => {
     assert.deepEqual(
-      performSubstitutions(`--${placeholder}: 1px;`),
-      `--$a${'x'.repeat(placeholder.length - 2)}: 1px;`,
+      performSubstitutions(`${propertyName}: 1px;`),
+      `${propertyName.replace(/\$\{[^}]*\}/g, (placeholder) => 'x'.repeat(placeholder.length))}: 1px;`,
+    )
+  })
+
+  it('should replace dynamic declaration names followed by dynamic values (#25)', () => {
+    const propertyName = '${varName}'
+    const propertyValue = '${value}'
+
+    assert.deepEqual(
+      performSubstitutions(`${propertyName}: ${propertyValue};`),
+      `$a${'x'.repeat(propertyName.length - 2)}: ${'x'.repeat(propertyValue.length)};`,
+    )
+  })
+
+  it('should preserve CRLF line endings for dynamic declaration names and values (#25)', () => {
+    const value = ['${varName}: ${', '  value', '};'].join('\r\n')
+
+    assert.deepEqual(performSubstitutions(value), ['$axxxxxxxx: xx', 'xxxxxxx', 'x;'].join('\r\n'))
+  })
+
+  it('should bound syntax masking to the template text', () => {
+    const value = '${name}: 1px;'
+
+    assert.strictEqual(
+      getTemplateSubstitutions(value, [{ start: 0, end: Number.MAX_SAFE_INTEGER }]).length,
+      value.length,
+    )
+  })
+
+  it('should preserve UTF-16 length for substitutions containing surrogate pairs', () => {
+    const value = '${"😀"}: ${value};'
+    const result = performSubstitutions(value)
+
+    assert.strictEqual(result.length, value.length)
+    assert.strictEqual(result, '$axxxxx: xxxxxxxx;')
+  })
+
+  it('should preserve template text when there are no substitutions', () => {
+    const value = 'color: red; 😀'
+
+    assert.strictEqual(getTemplateSubstitutions(value, []), value)
+  })
+
+  it('should preserve dynamic pseudo selectors after component interpolations', () => {
+    const component = '${Component}'
+    const pseudo = '${pseudo}'
+
+    assert.deepEqual(
+      performSubstitutions(`${component}:${pseudo} { color: red; }`),
+      `&${' '.repeat(component.length - 1)}:${'x'.repeat(pseudo.length)} { color: red; }`,
     )
   })
 

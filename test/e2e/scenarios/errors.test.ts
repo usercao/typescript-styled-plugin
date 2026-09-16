@@ -292,6 +292,44 @@ describe('Errors', () => {
     })
   })
 
+  it('should not return an error for dynamic declaration names and values (#25)', async () => {
+    const errorResponse = await getSemanticDiagnosticsForFile(
+      `declare const styled: { div(strings: TemplateStringsArray, ...values: unknown[]): string };
+        declare const varName: string;
+        declare const value: string;
+        const StyledComponent = styled.div\`
+          $\{varName}: $\{value};
+          --$\{varName}: $\{value};
+          --theme-$\{varName}: $\{value};
+          --$\{varName}-$\{varName}: $\{value};
+          color: red; --$\{varName}: $\{value};
+          --føø-$\{varName}: $\{value};
+          :root { --$\{varName}: $\{value}; }
+        \``,
+    )
+
+    assert.isTrue(errorResponse.success)
+    assert.strictEqual(errorResponse.body.length, 0)
+  })
+
+  it('should map diagnostics after dynamic declaration names and values (#25)', async () => {
+    const errorResponse = await getSemanticDiagnosticsForFile(
+      `declare const styled: { div(strings: TemplateStringsArray, ...values: unknown[]): string };
+        declare const varName: string;
+        declare const value: string;
+        const StyledComponent = styled.div\`
+          $\{varName}: $\{value};
+          boarder: 1px solid black;
+        \``,
+    )
+
+    assert.isTrue(errorResponse.success)
+    assert.strictEqual(errorResponse.body.length, 1)
+    assert.strictEqual(errorResponse.body[0]?.text, "Unknown property: 'boarder'")
+    assert.deepEqual(errorResponse.body[0]?.start, { line: 6, offset: 11 })
+    assert.deepEqual(errorResponse.body[0]?.end, { line: 6, offset: 18 })
+  })
+
   it('should not return an error for a placeholder as part of a rule (#59)', () => {
     return getSemanticDiagnosticsForFile(
       `function css(strings: TemplateStringsArray, ...values: unknown[]) { return ""; }; const q = css\`

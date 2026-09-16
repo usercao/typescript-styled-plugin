@@ -3,17 +3,19 @@ import type * as ts from 'typescript/lib/tsserverlibrary.js'
 import type { FoldingRange } from 'vscode-css-languageservice'
 
 import type { VirtualDocumentProvider } from '../virtual-document/styled-virtual-document-provider.ts'
+import type { VirtualDocumentSessionProvider } from '../virtual-document/virtual-document-session-provider.ts'
 import type { ScssLanguageService } from './styles-language-services.ts'
 
 export class FoldingFeature {
   public constructor(
     private readonly typescript: typeof ts,
     private readonly virtualDocumentFactory: VirtualDocumentProvider,
+    private readonly virtualDocumentSessionProvider: VirtualDocumentSessionProvider,
     private readonly scssLanguageService: ScssLanguageService,
   ) {}
 
   public getOutliningSpans(context: TemplateContext): ts.OutliningSpan[] {
-    const document = this.virtualDocumentFactory.createVirtualDocument(context)
+    const document = this.virtualDocumentSessionProvider.getDocument(context)
     return this.scssLanguageService
       .getFoldingRanges(document)
       .map((range) => this.translateRange(context, range))

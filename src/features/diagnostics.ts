@@ -4,6 +4,7 @@ import * as vscode from 'vscode-languageserver-types'
 
 import { pluginIdentity } from '../tsserver/plugin-identity.ts'
 import type { VirtualDocumentProvider } from '../virtual-document/styled-virtual-document-provider.ts'
+import type { VirtualDocumentSessionProvider } from '../virtual-document/virtual-document-session-provider.ts'
 import { CSS_DIAGNOSTIC_CODE } from './css-diagnostic-code.ts'
 import type { ScssLanguageService } from './styles-language-services.ts'
 
@@ -11,12 +12,12 @@ export class DiagnosticsFeature {
   public constructor(
     private readonly typescript: typeof ts,
     private readonly virtualDocumentFactory: VirtualDocumentProvider,
+    private readonly virtualDocumentSessionProvider: VirtualDocumentSessionProvider,
     private readonly scssLanguageService: ScssLanguageService,
   ) {}
 
   public getSemanticDiagnostics(context: TemplateContext): ts.Diagnostic[] {
-    const document = this.virtualDocumentFactory.createVirtualDocument(context)
-    const stylesheet = this.scssLanguageService.parseStylesheet(document)
+    const { document, stylesheet } = this.virtualDocumentSessionProvider.getParsedDocument(context)
     return this.scssLanguageService
       .doValidation(document, stylesheet)
       .map((diagnostic) => this.translateDiagnostic(diagnostic, context))

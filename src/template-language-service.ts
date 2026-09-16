@@ -26,6 +26,10 @@ import type {
   ScssLanguageService,
 } from './features/styles-language-services.ts'
 import type { VirtualDocumentProvider } from './virtual-document/styled-virtual-document-provider.ts'
+import {
+  CachedVirtualDocumentSessionProvider,
+  type VirtualDocumentSessionProvider,
+} from './virtual-document/virtual-document-session-provider.ts'
 
 export class StyledTemplateLanguageService implements TemplateLanguageService {
   private cssLanguageServiceInstance?: CssLanguageService
@@ -35,6 +39,7 @@ export class StyledTemplateLanguageService implements TemplateLanguageService {
   private hoverFeature?: HoverFeature
   private codeActionsFeature?: CodeActionsFeature
   private foldingFeature?: FoldingFeature
+  private virtualDocumentSessionProviderInstance?: VirtualDocumentSessionProvider
 
   public constructor(
     private readonly typescript: typeof ts,
@@ -97,6 +102,7 @@ export class StyledTemplateLanguageService implements TemplateLanguageService {
       this.completionsFeature = new CompletionsFeature(
         this.typescript,
         this.virtualDocumentFactory,
+        this.virtualDocumentSessionProvider,
         this.cssLanguageService,
         this.scssLanguageService,
         this.emmetCompletionProvider,
@@ -110,6 +116,7 @@ export class StyledTemplateLanguageService implements TemplateLanguageService {
     this.diagnosticsFeature ||= new DiagnosticsFeature(
       this.typescript,
       this.virtualDocumentFactory,
+      this.virtualDocumentSessionProvider,
       this.scssLanguageService,
     )
     return this.diagnosticsFeature
@@ -119,6 +126,7 @@ export class StyledTemplateLanguageService implements TemplateLanguageService {
     this.hoverFeature ||= new HoverFeature(
       this.typescript,
       this.virtualDocumentFactory,
+      this.virtualDocumentSessionProvider,
       this.scssLanguageService,
     )
     return this.hoverFeature
@@ -127,6 +135,7 @@ export class StyledTemplateLanguageService implements TemplateLanguageService {
   private get codeActions(): CodeActionsFeature {
     this.codeActionsFeature ||= new CodeActionsFeature(
       this.virtualDocumentFactory,
+      this.virtualDocumentSessionProvider,
       this.scssLanguageService,
     )
     return this.codeActionsFeature
@@ -136,6 +145,7 @@ export class StyledTemplateLanguageService implements TemplateLanguageService {
     this.foldingFeature ||= new FoldingFeature(
       this.typescript,
       this.virtualDocumentFactory,
+      this.virtualDocumentSessionProvider,
       this.scssLanguageService,
     )
     return this.foldingFeature
@@ -147,6 +157,14 @@ export class StyledTemplateLanguageService implements TemplateLanguageService {
       this.cssLanguageServiceInstance.configure(this.configurationManager.config)
     }
     return this.cssLanguageServiceInstance
+  }
+
+  private get virtualDocumentSessionProvider(): VirtualDocumentSessionProvider {
+    this.virtualDocumentSessionProviderInstance ||= new CachedVirtualDocumentSessionProvider(
+      this.virtualDocumentFactory,
+      this.scssLanguageService,
+    )
+    return this.virtualDocumentSessionProviderInstance
   }
 
   private get scssLanguageService(): ScssLanguageService {

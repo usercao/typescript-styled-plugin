@@ -5,6 +5,7 @@ import * as vscode from 'vscode-languageserver-types'
 
 import type { StyledPluginConfiguration } from '../configuration/plugin-configuration.ts'
 import type { VirtualDocumentProvider } from '../virtual-document/styled-virtual-document-provider.ts'
+import type { VirtualDocumentSessionProvider } from '../virtual-document/virtual-document-session-provider.ts'
 import type {
   CssLanguageService,
   EmmetCompletionProvider,
@@ -16,12 +17,19 @@ const emptyCompletionList: vscode.CompletionList = {
   isIncomplete: false,
 }
 
+interface CompletionResult {
+  readonly items: vscode.CompletionList
+  readonly document: TextDocument
+  readonly wrapper: string
+}
+
 export class CompletionsFeature {
   private readonly cache = new CompletionsCache()
 
   public constructor(
     private readonly typescript: typeof ts,
     private readonly virtualDocumentFactory: VirtualDocumentProvider,
+    private readonly virtualDocumentSessionProvider: VirtualDocumentSessionProvider,
     private readonly cssLanguageService: CssLanguageService,
     private readonly scssLanguageService: ScssLanguageService,
     private readonly emmetCompletionProvider: EmmetCompletionProvider,
@@ -36,9 +44,7 @@ export class CompletionsFeature {
     context: TemplateContext,
     position: ts.LineAndCharacter,
   ): ts.WithMetadata<ts.CompletionInfo> {
-    const items = this.getCompletionItems(context, position)
-    const document = this.virtualDocumentFactory.createVirtualDocument(context)
-    const wrapper = this.virtualDocumentFactory.getVirtualDocumentWrapper(context)
+    const { items, document, wrapper } = this.getCompletionItems(context, position)
     return translateCompletionItemsToCompletionInfo(this.typescript, items, document, wrapper)
   }
 
@@ -47,7 +53,7 @@ export class CompletionsFeature {
     position: ts.LineAndCharacter,
     name: string,
   ): ts.CompletionEntryDetails {
-    const item = this.getCompletionItems(context, position).items.find(
+    const item = this.getCompletionItems(context, position).items.items.find(
       (candidate) => candidate.label === name,
     )
     if (!item) {
@@ -66,7 +72,7 @@ export class CompletionsFeature {
   private getCompletionItems(
     context: TemplateContext,
     position: ts.LineAndCharacter,
-  ): vscode.CompletionList {
+  ): CompletionResult {
     const wrapper = this.virtualDocumentFactory.getVirtualDocumentWrapper(context)
     const cached = this.cache.getCached(context, position, wrapper)
     if (cached) {
@@ -75,12 +81,15 @@ export class CompletionsFeature {
 
     const completions: vscode.CompletionList = { isIncomplete: false, items: [] }
     if (context.node.getText() === '``') {
-      return completions
+      return {
+        items: completions,
+        document: this.virtualDocumentSessionProvider.getDocument(context),
+        wrapper,
+      }
     }
 
-    const document = this.virtualDocumentFactory.createVirtualDocument(context)
+    const { document, stylesheet } = this.virtualDocumentSessionProvider.getParsedDocument(context)
     const virtualPosition = this.virtualDocumentFactory.toVirtualDocPosition(position)
-    const stylesheet = this.scssLanguageService.parseStylesheet(document)
     this.cssLanguageService.setCompletionParticipants([])
     const configuration = this.getConfiguration()
     const emmetResults =
@@ -99,8 +108,9 @@ export class CompletionsFeature {
       completions.items.push(...emmetResults.items)
       completions.isIncomplete = true
     }
-    this.cache.updateCached(context, position, wrapper, completions)
-    return completions
+    const result = { items: completions, document, wrapper }
+    this.cache.updateCached(context, position, result)
+    return result
   }
 }
 
@@ -109,22 +119,22 @@ class CompletionsCache {
   private cachedPosition?: ts.LineAndCharacter
   private cachedText?: string
   private cachedWrapper?: string
-  private completions?: vscode.CompletionList
+  private result?: CompletionResult
 
   public getCached(
     context: TemplateContext,
     position: ts.LineAndCharacter,
     wrapper: string,
-  ): vscode.CompletionList | undefined {
+  ): CompletionResult | undefined {
     if (
-      this.completions &&
+      this.result &&
       context.fileName === this.cachedFileName &&
       this.cachedPosition &&
       positionsEqual(position, this.cachedPosition) &&
       context.text === this.cachedText &&
       wrapper === this.cachedWrapper
     ) {
-      return this.completions
+      return this.result
     }
     return undefined
   }
@@ -132,14 +142,13 @@ class CompletionsCache {
   public updateCached(
     context: TemplateContext,
     position: ts.LineAndCharacter,
-    wrapper: string,
-    completions: vscode.CompletionList,
+    result: CompletionResult,
   ) {
     this.cachedFileName = context.fileName
     this.cachedPosition = position
     this.cachedText = context.text
-    this.cachedWrapper = wrapper
-    this.completions = completions
+    this.cachedWrapper = result.wrapper
+    this.result = result
   }
 
   public clear() {
@@ -147,7 +156,7 @@ class CompletionsCache {
     this.cachedPosition = undefined
     this.cachedText = undefined
     this.cachedWrapper = undefined
-    this.completions = undefined
+    this.result = undefined
   }
 }
 

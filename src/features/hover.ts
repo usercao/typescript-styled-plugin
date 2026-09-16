@@ -3,12 +3,14 @@ import type * as ts from 'typescript/lib/tsserverlibrary.js'
 import * as vscode from 'vscode-languageserver-types'
 
 import type { VirtualDocumentProvider } from '../virtual-document/styled-virtual-document-provider.ts'
+import type { VirtualDocumentSessionProvider } from '../virtual-document/virtual-document-session-provider.ts'
 import type { ScssLanguageService } from './styles-language-services.ts'
 
 export class HoverFeature {
   public constructor(
     private readonly typescript: typeof ts,
     private readonly virtualDocumentFactory: VirtualDocumentProvider,
+    private readonly virtualDocumentSessionProvider: VirtualDocumentSessionProvider,
     private readonly scssLanguageService: ScssLanguageService,
   ) {}
 
@@ -16,8 +18,7 @@ export class HoverFeature {
     context: TemplateContext,
     position: ts.LineAndCharacter,
   ): ts.QuickInfo | undefined {
-    const document = this.virtualDocumentFactory.createVirtualDocument(context)
-    const stylesheet = this.scssLanguageService.parseStylesheet(document)
+    const { document, stylesheet } = this.virtualDocumentSessionProvider.getParsedDocument(context)
     const virtualPosition = this.virtualDocumentFactory.toVirtualDocPosition(position)
     const hover = this.scssLanguageService.doHover(document, virtualPosition, stylesheet)
     return hover ? this.translateHover(hover, virtualPosition, context) : undefined

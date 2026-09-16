@@ -3,12 +3,14 @@ import type * as ts from 'typescript/lib/tsserverlibrary.js'
 import * as vscode from 'vscode-languageserver-types'
 
 import type { VirtualDocumentProvider } from '../virtual-document/styled-virtual-document-provider.ts'
+import type { VirtualDocumentSessionProvider } from '../virtual-document/virtual-document-session-provider.ts'
 import { CSS_DIAGNOSTIC_CODE } from './css-diagnostic-code.ts'
 import type { ScssLanguageService } from './styles-language-services.ts'
 
 export class CodeActionsFeature {
   public constructor(
     private readonly virtualDocumentFactory: VirtualDocumentProvider,
+    private readonly virtualDocumentSessionProvider: VirtualDocumentSessionProvider,
     private readonly scssLanguageService: ScssLanguageService,
   ) {}
 
@@ -21,8 +23,7 @@ export class CodeActionsFeature {
     start: number,
     end: number,
   ): ts.CodeAction[] {
-    const document = this.virtualDocumentFactory.createVirtualDocument(context)
-    const stylesheet = this.scssLanguageService.parseStylesheet(document)
+    const { document, stylesheet } = this.virtualDocumentSessionProvider.getParsedDocument(context)
     const range = this.toRange(context, start, end)
     const diagnostics = this.scssLanguageService
       .doValidation(document, stylesheet)

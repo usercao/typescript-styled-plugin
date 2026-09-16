@@ -1,6 +1,6 @@
 import type { TemplateContext } from 'typescript-template-language-service-decorator'
 import * as ts from 'typescript/lib/tsserverlibrary.js'
-import { assert, describe, it } from 'vitest'
+import { assert, describe, it, vi } from 'vitest'
 import { TextDocument } from 'vscode-languageserver-textdocument'
 import * as vscode from 'vscode-languageserver-types'
 
@@ -135,6 +135,37 @@ describe('StyledTemplateLanguageService', () => {
     assert.deepEqual(factory.cssConfigurations[1]?.tags, ['sty'])
     assert.deepEqual(factory.scssConfigurations[1]?.tags, ['sty'])
   })
+
+  it('should reuse parsed virtual documents across features and invalidate changed contexts', () => {
+    const factory = createFakeLanguageServiceFactory()
+    const virtualDocumentProvider = new StyledVirtualDocumentProvider(ts)
+    const createVirtualDocument = vi.spyOn(virtualDocumentProvider, 'createVirtualDocument')
+    const service = new StyledTemplateLanguageService(
+      ts,
+      new PluginConfigurationManager(),
+      virtualDocumentProvider,
+      factory,
+    )
+    const context = createContext('color:')
+
+    service.getSemanticDiagnostics(context)
+    service.getQuickInfoAtPosition(context, context.toPosition(1))
+    service.getCompletionsAtPosition(context, context.toPosition(context.text.length))
+    service.getCodeFixesAtPosition(context, 0, context.text.length)
+    service.getOutliningSpans(context)
+
+    assert.strictEqual(createVirtualDocument.mock.calls.length, 1)
+    assert.strictEqual(factory.parsedDocuments.length, 1)
+
+    service.getSemanticDiagnostics(createContext('display:'))
+    assert.strictEqual(createVirtualDocument.mock.calls.length, 2)
+    assert.strictEqual(factory.parsedDocuments.length, 2)
+
+    service.getSemanticDiagnostics(createContext('display:', 'keyframes'))
+    assert.strictEqual(createVirtualDocument.mock.calls.length, 3)
+    assert.strictEqual(factory.parsedDocuments.length, 3)
+    assert.match(factory.parsedDocuments[2]?.getText() ?? '', /^@keyframes/)
+  })
 })
 
 function createService() {
@@ -170,9 +201,11 @@ function createFakeLanguageServiceFactory(
 ): StylesLanguageServiceFactory & {
   cssConfigurations: StyledPluginConfiguration[]
   scssConfigurations: StyledPluginConfiguration[]
+  parsedDocuments: TextDocument[]
 } {
   const cssConfigurations: StyledPluginConfiguration[] = []
   const scssConfigurations: StyledPluginConfiguration[] = []
+  const parsedDocuments: TextDocument[] = []
   const cssLanguageService: CssLanguageService = {
     configure(configuration) {
       if (configuration) {
@@ -193,7 +226,8 @@ function createFakeLanguageServiceFactory(
         scssConfigurations.push(configuration as StyledPluginConfiguration)
       }
     },
-    parseStylesheet() {
+    parseStylesheet(document) {
+      parsedDocuments.push(document)
       return {} as ReturnType<ScssLanguageService['parseStylesheet']>
     },
     doComplete() {
@@ -216,6 +250,7 @@ function createFakeLanguageServiceFactory(
   return {
     cssConfigurations,
     scssConfigurations,
+    parsedDocuments,
     createCssLanguageService() {
       return cssLanguageService
     },

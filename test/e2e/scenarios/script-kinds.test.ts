@@ -26,7 +26,12 @@ describe('Script kinds', () => {
       await server.close()
       const response = getFirstResponseOfType('completions', server)
       assert.isTrue(response.success)
-      assert.isTrue(response.body.some((item) => item.name === 'aliceblue'))
+      const aliceblue = response.body.find((item) => item.name === 'aliceblue')
+      assert.isDefined(aliceblue)
+      assert.deepEqual(aliceblue.replacementSpan, {
+        start: { line: 1, offset: source.length },
+        end: { line: 1, offset: source.length },
+      })
     },
   )
 })

@@ -44,7 +44,7 @@ the actual editor's tsserver host and Node runtime.
 By default, the plugin recognizes these tag names:
 
 ```text
-styled, css, extend, injectGlobal, createGlobalStyle, keyframes
+styled, css, keyframes, createGlobalStyle, globalStyle, injectGlobal, extend
 ```
 
 For example:
@@ -57,7 +57,7 @@ const Button = styled.button`
 `
 ```
 
-Set `tags` to replace the default list:
+Set `tags` to replace the complete default list rather than add to it:
 
 ```json
 {

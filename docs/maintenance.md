@@ -69,6 +69,26 @@ The retained heap delta after explicit garbage collection was 2.8-2.9 MB. This b
 E2E tests load the compiled `lib/` package, so run `yarn compile` before a
 custom scenario invocation. The `test:e2e` script already does this.
 
+## Focused tests and tsserver debugging
+
+Run a single unit or E2E scenario through Yarn so the workspace-provided
+Vitest binary and configuration loader are used:
+
+```bash
+yarn vitest run test/unit/plugin-configuration.test.ts --configLoader runner
+yarn compile && yarn vitest run test/e2e/scenarios/completions.test.ts --configLoader runner
+```
+
+E2E scenarios create a real tsserver with
+`test/e2e/tsserver-fixture/` and send protocol requests through its `TSServer`
+wrapper. To investigate a plugin-host interaction, add or adjust the smallest
+scenario in `test/e2e/scenarios/`, use `openMockFile` to provide the source,
+send the relevant protocol command, then inspect the typed response helpers.
+The fixture writes verbose tsserver output to
+`test/e2e/tsserver-fixture/log.txt`; use it to confirm plugin discovery and
+request handling after a failing scenario. Do not commit changes to this
+generated log.
+
 ## Testing changes
 
 Add a unit test when changing template substitution, virtual document mapping,

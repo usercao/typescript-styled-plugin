@@ -3,6 +3,20 @@ import { assert, describe, it } from 'vitest'
 import { PluginConfigurationManager } from '../../src/configuration/plugin-configuration'
 
 describe('PluginConfigurationManager', () => {
+  it('should expose the complete default tag list', () => {
+    const manager = new PluginConfigurationManager()
+
+    assert.deepEqual(manager.config.tags, [
+      'styled',
+      'css',
+      'keyframes',
+      'createGlobalStyle',
+      'globalStyle',
+      'injectGlobal',
+      'extend',
+    ])
+  })
+
   it('should merge lint settings while preserving defaults', () => {
     const manager = new PluginConfigurationManager()
     manager.updateFromPluginConfig({ lint: { unknownProperties: 'error' } })

@@ -11,14 +11,14 @@ describe('substituter', () => {
     )
   })
 
-  it('should insert whitespace when placeholder is used a entire property', () => {
+  it('should insert whitespace when placeholder is used an entire property', () => {
     assert.deepEqual(
       performSubstitutions(['width: 1px;', `\${'color: red;'}`, 'color: red;'].join('\n')),
       ['width: 1px;', `                `, 'color: red;'].join('\n'),
     )
   })
 
-  it('should insert a false property when placeholder is used a entire property with trailing semi-colon', () => {
+  it('should insert a false property when placeholder is used an entire property with trailing semi-colon', () => {
     assert.deepEqual(
       performSubstitutions(['width: 1px;', `\${'color: red'};`, 'color: red;'].join('\n')),
       ['width: 1px;', `$a:0           ;`, 'color: red;'].join('\n'),

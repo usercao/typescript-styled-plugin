@@ -17,7 +17,7 @@ export class FoldingFeature {
     return this.scssLanguageService
       .getFoldingRanges(document)
       .map((range) => this.translateRange(context, range))
-      .filter((range): range is ts.OutliningSpan => range !== undefined)
+      .filter((range) => range !== undefined)
   }
 
   private translateRange(

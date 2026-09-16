@@ -1,6 +1,6 @@
 import type { TemplateContext } from 'typescript-template-language-service-decorator'
 import type * as ts from 'typescript/lib/tsserverlibrary.js'
-import { TextDocument } from 'vscode-languageserver-textdocument'
+import type { TextDocument } from 'vscode-languageserver-textdocument'
 import * as vscode from 'vscode-languageserver-types'
 
 import type { StyledPluginConfiguration } from '../configuration/plugin-configuration.ts'
@@ -170,7 +170,7 @@ function translateCompletionItemsToCompletionInfo(
     isNewIdentifierLocation: false,
     entries: items.items
       .map((item) => translateCompletionEntry(typescript, item, document, wrapper))
-      .filter((entry): entry is ts.CompletionEntry => entry !== undefined),
+      .filter((entry) => entry !== undefined),
   }
 }
 

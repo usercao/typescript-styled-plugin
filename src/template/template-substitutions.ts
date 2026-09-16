@@ -7,16 +7,13 @@ export function getTemplateSubstitutions(
 ): string {
   const substitutedParts: string[] = []
   let lastOffset = 0
-  const lineStartOffsets = templateText
-    .split('\n')
-    .map((line) => line.length)
-    .reduce(
-      (previousValue, currentValue, currentIndex) => [
-        ...previousValue,
-        currentValue + previousValue[currentIndex] + 1,
-      ],
-      [0],
-    )
+  const lineStartOffsets = [0]
+  for (let offset = 0; offset < templateText.length; offset++) {
+    if (templateText[offset] === '\n') {
+      lineStartOffsets.push(offset + 1)
+    }
+  }
+  lineStartOffsets.push(templateText.length + 1)
   let lineStartIndex = 0
   for (const span of substitutionSpans) {
     while (lineStartOffsets[lineStartIndex] <= span.start) {
@@ -56,29 +53,27 @@ function getSubstitution(context: {
     context.textBeforePlaceholder,
     context.textAfterPlaceholder,
   )
-  const result = context.placeholderText.replace(/./gm, (character) =>
-    character === '\n' ? '\n' : replacementCharacter,
-  )
+  const result = context.placeholderText.replace(/./g, replacementCharacter)
 
-  if (replacementCharacter === ' ' && context.textAfterPlaceholder.match(/^\s*;/)) {
-    if (context.textBeforePlaceholder.match(/(;|^|\}|\{)[\s|\n]*$/)) {
+  if (replacementCharacter === ' ' && /^\s*;/.test(context.textAfterPlaceholder)) {
+    if (/(;|^|\}|\{)[\s|\n]*$/.test(context.textBeforePlaceholder)) {
       return '$a:0' + result.slice(4)
     }
-    return context.placeholderText.replace(/./gm, (character) => (character === '\n' ? '\n' : 'x'))
+    return context.placeholderText.replace(/./g, 'x')
   }
 
   if (
-    context.textAfterPlaceholder.match(/^\s*[:]/) &&
-    !context.textAfterPlaceholder.match(/^\s*[:].+?[{&]/)
+    /^\s*[:]/.test(context.textAfterPlaceholder) &&
+    !/^\s*[:].+?[{&]/.test(context.textAfterPlaceholder)
   ) {
     return '$a' + result.slice(2)
   }
 
-  if (context.textAfterPlaceholder.match(/^\s*[:].+?[{&]/)) {
+  if (/^\s*[:].+?[{&]/.test(context.textAfterPlaceholder)) {
     return '&' + ' '.repeat(result.length - 1)
   }
 
-  if (context.textBeforePlaceholder.match(/#\s*$/)) {
+  if (/#\s*$/.test(context.textBeforePlaceholder)) {
     return '000' + ' '.repeat(Math.max(context.placeholderText.length - 3, 0))
   }
 
@@ -90,15 +85,15 @@ function getReplacementCharacter(
   textBeforePlaceholder: string,
   textAfterPlaceholder: string,
 ) {
-  const emptySpacesRegExp = /(^|\n)\s*$/g
+  const emptySpacesRegExp = /(^|\n)\s*$/
   if (
-    textBeforeCurrentLine.match(emptySpacesRegExp) &&
-    textBeforePlaceholder.match(emptySpacesRegExp)
+    emptySpacesRegExp.test(textBeforeCurrentLine) &&
+    emptySpacesRegExp.test(textBeforePlaceholder)
   ) {
-    if (!textAfterPlaceholder.match(/^\s*[{:,]/)) {
+    if (!/^\s*[{:,]/.test(textAfterPlaceholder)) {
       return ' '
     }
   }
 
-  return textAfterPlaceholder.match(/^%/) ? '0' : 'x'
+  return textAfterPlaceholder.startsWith('%') ? '0' : 'x'
 }

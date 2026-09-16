@@ -1,4 +1,4 @@
-import { Logger } from 'typescript-template-language-service-decorator'
+import type { Logger } from 'typescript-template-language-service-decorator'
 import type * as ts from 'typescript/lib/tsserverlibrary.js'
 
 import { pluginIdentity } from './plugin-identity.ts'

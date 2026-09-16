@@ -58,7 +58,7 @@ export class CodeActionsFeature {
       }
       const changes = edits
         .map((edit) => this.translateEdit(context, edit))
-        .filter((change): change is ts.FileTextChanges => change !== undefined)
+        .filter((change) => change !== undefined)
       if (changes.length === edits.length) {
         actions.push({ description: command.title, changes })
       }

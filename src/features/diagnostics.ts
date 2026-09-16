@@ -20,7 +20,7 @@ export class DiagnosticsFeature {
     return this.scssLanguageService
       .doValidation(document, stylesheet)
       .map((diagnostic) => this.translateDiagnostic(diagnostic, context))
-      .filter((diagnostic): diagnostic is ts.Diagnostic => diagnostic !== undefined)
+      .filter((diagnostic) => diagnostic !== undefined)
   }
 
   private translateDiagnostic(

@@ -1,9 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
-import {
-  decorateWithTemplateLanguageService,
-  TemplateSettings,
-} from 'typescript-template-language-service-decorator'
+import { decorateWithTemplateLanguageService } from 'typescript-template-language-service-decorator'
+import type { TemplateSettings } from 'typescript-template-language-service-decorator'
 import type * as ts from 'typescript/lib/tsserverlibrary.js'
 
 import { PluginConfigurationManager } from '../configuration/plugin-configuration.ts'

@@ -2,7 +2,7 @@ import { doComplete as emmetDoComplete } from '@vscode/emmet-helper'
 import type { VSCodeEmmetConfig } from '@vscode/emmet-helper'
 import { getCSSLanguageService, getSCSSLanguageService } from 'vscode-css-languageservice'
 import type { LanguageService } from 'vscode-css-languageservice'
-import { TextDocument } from 'vscode-languageserver-textdocument'
+import type { TextDocument } from 'vscode-languageserver-textdocument'
 import * as vscode from 'vscode-languageserver-types'
 
 export type CssLanguageService = Pick<

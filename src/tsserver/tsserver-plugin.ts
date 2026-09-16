@@ -63,7 +63,7 @@ export function getTemplateSettings(
   }
 }
 
-function isSupportedTypeScriptVersion(typescript: typeof ts): boolean {
+export function isSupportedTypeScriptVersion(typescript: Pick<typeof ts, 'version'>): boolean {
   const [major] = typescript.version.split('.')
-  return +major >= 6
+  return major === '6'
 }

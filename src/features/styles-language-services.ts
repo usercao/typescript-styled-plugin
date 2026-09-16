@@ -1,9 +1,10 @@
 import { doComplete as emmetDoComplete } from '@vscode/emmet-helper'
-import type { VSCodeEmmetConfig } from '@vscode/emmet-helper'
 import { getCSSLanguageService, getSCSSLanguageService } from 'vscode-css-languageservice'
 import type { LanguageService } from 'vscode-css-languageservice'
 import type { TextDocument } from 'vscode-languageserver-textdocument'
 import * as vscode from 'vscode-languageserver-types'
+
+import type { StyledPluginEmmetConfiguration } from '../configuration/plugin-configuration.ts'
 
 export type CssLanguageService = Pick<LanguageService, 'configure' | 'doComplete'>
 
@@ -27,7 +28,7 @@ export interface EmmetCompletionProvider {
   doComplete(
     document: TextDocument,
     position: vscode.Position,
-    configuration: VSCodeEmmetConfig,
+    configuration: StyledPluginEmmetConfiguration,
   ): vscode.CompletionList | undefined
 }
 
@@ -45,7 +46,7 @@ export class DefaultEmmetCompletionProvider implements EmmetCompletionProvider {
   public doComplete(
     document: TextDocument,
     position: vscode.Position,
-    configuration: VSCodeEmmetConfig,
+    configuration: StyledPluginEmmetConfiguration,
   ): vscode.CompletionList | undefined {
     return emmetDoComplete(document, position, 'css', configuration)
   }

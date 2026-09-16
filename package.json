@@ -49,7 +49,7 @@
     "test": "yarn test:unit && yarn test:e2e",
     "test:e2e": "yarn compile && vitest run test/e2e/scenarios --configLoader runner",
     "test:e2e:current": "TSSERVER_TYPESCRIPT_PACKAGE=typescript-current yarn test:e2e",
-    "test:package-api": "yarn compile && tsc --noEmit -p test/package-api",
+    "test:package-api": "yarn compile && tsc --noEmit -p test/package-api && node test/package-api/runtime.ts",
     "test:unit": "vitest run test/unit --configLoader runner",
     "typecheck": "tsc --noEmit -p . && tsc --noEmit -p test/e2e",
     "verify": "yarn format:check && yarn lint && yarn typecheck && yarn test && yarn test:package-api && npm pack --dry-run",

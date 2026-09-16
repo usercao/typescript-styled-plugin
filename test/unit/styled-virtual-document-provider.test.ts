@@ -59,7 +59,7 @@ describe('StyledVirtualDocumentProvider', () => {
     const provider = new StyledVirtualDocumentProvider(ts)
     const wrapperLength = provider.getVirtualDocumentWrapper(context).length
 
-    assert.strictEqual(provider.fromVirtualDocOffset(wrapperLength - 1, context), undefined)
+    assert.strictEqual(provider.fromVirtualDocOffset(wrapperLength - 1, context), -1)
     assert.strictEqual(provider.fromVirtualDocOffset(wrapperLength, context), 0)
     assert.strictEqual(
       provider.fromVirtualDocOffset(wrapperLength + context.text.length, context),
@@ -67,7 +67,7 @@ describe('StyledVirtualDocumentProvider', () => {
     )
     assert.strictEqual(
       provider.fromVirtualDocOffset(wrapperLength + context.text.length + 1, context),
-      undefined,
+      context.text.length + 1,
     )
     assert.strictEqual(
       provider.fromVirtualDocPosition({ line: 0, character: 0 }, context),
@@ -75,6 +75,10 @@ describe('StyledVirtualDocumentProvider', () => {
     )
     assert.deepEqual(provider.fromVirtualDocPosition({ line: 1, character: 0 }, context), {
       line: 0,
+      character: 0,
+    })
+    assert.deepEqual(provider.fromVirtualDocPosition({ line: 0, character: 0 }), {
+      line: -1,
       character: 0,
     })
     assert.strictEqual(

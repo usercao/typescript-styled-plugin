@@ -7,12 +7,13 @@ import { TextDocument } from 'vscode-languageserver-textdocument'
 export interface VirtualDocumentProvider {
   createVirtualDocument(context: TemplateContext): TextDocument
   toVirtualDocPosition(position: ts.LineAndCharacter): ts.LineAndCharacter
+  fromVirtualDocPosition(position: ts.LineAndCharacter): ts.LineAndCharacter
   fromVirtualDocPosition(
     position: ts.LineAndCharacter,
     context: TemplateContext,
   ): ts.LineAndCharacter | undefined
   toVirtualDocOffset(offset: number, context: TemplateContext): number
-  fromVirtualDocOffset(offset: number, context: TemplateContext): number | undefined
+  fromVirtualDocOffset(offset: number, context: TemplateContext): number
   getVirtualDocumentWrapper(context: TemplateContext): string
 }
 
@@ -31,11 +32,19 @@ export class StyledVirtualDocumentProvider implements VirtualDocumentProvider {
     return { line: position.line + 1, character: position.character }
   }
 
+  public fromVirtualDocPosition(position: ts.LineAndCharacter): ts.LineAndCharacter
   public fromVirtualDocPosition(
     position: ts.LineAndCharacter,
     context: TemplateContext,
+  ): ts.LineAndCharacter | undefined
+  public fromVirtualDocPosition(
+    position: ts.LineAndCharacter,
+    context?: TemplateContext,
   ): ts.LineAndCharacter | undefined {
     const sourcePosition = { line: position.line - 1, character: position.character }
+    if (!context) {
+      return sourcePosition
+    }
     const offset = context.toOffset(sourcePosition)
     return offset >= 0 &&
       offset <= context.text.length &&
@@ -48,9 +57,8 @@ export class StyledVirtualDocumentProvider implements VirtualDocumentProvider {
     return offset + this.getVirtualDocumentWrapper(context).length
   }
 
-  public fromVirtualDocOffset(offset: number, context: TemplateContext): number | undefined {
-    const sourceOffset = offset - this.getVirtualDocumentWrapper(context).length
-    return sourceOffset >= 0 && sourceOffset <= context.text.length ? sourceOffset : undefined
+  public fromVirtualDocOffset(offset: number, context: TemplateContext): number {
+    return offset - this.getVirtualDocumentWrapper(context).length
   }
 
   public getVirtualDocumentWrapper(context: TemplateContext): string {

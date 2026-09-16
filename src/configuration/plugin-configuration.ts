@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
-import type { VSCodeEmmetConfig } from '@vscode/emmet-helper'
 
 export type StyledPluginLintLevel = 'ignore' | 'warning' | 'error'
 
@@ -26,7 +25,15 @@ export interface StyledPluginLintConfiguration {
   readonly zeroUnits?: StyledPluginLintLevel
 }
 
-export type StyledPluginEmmetConfiguration = Readonly<VSCodeEmmetConfig>
+export interface StyledPluginEmmetConfiguration {
+  readonly showExpandedAbbreviation?: string
+  readonly showAbbreviationSuggestions?: boolean
+  readonly syntaxProfiles?: Readonly<Record<string, unknown>>
+  readonly variables?: Readonly<Record<string, unknown>>
+  readonly preferences?: Readonly<Record<string, unknown>>
+  readonly excludeLanguages?: string[]
+  readonly showSuggestionsAsSnippets?: boolean
+}
 
 export interface StyledPluginConfiguration {
   readonly tags: ReadonlyArray<string>

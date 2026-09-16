@@ -7,6 +7,7 @@ import type {
   TemplateContext,
   TemplateLanguageService,
 } from 'typescript-template-language-service-decorator'
+import type { Logger } from 'typescript-template-language-service-decorator'
 import type * as ts from 'typescript/lib/tsserverlibrary.js'
 
 import { PluginConfigurationManager } from './configuration/plugin-configuration.ts'
@@ -32,6 +33,9 @@ import {
 } from './virtual-document/virtual-document-session-provider.ts'
 
 export class StyledTemplateLanguageService implements TemplateLanguageService {
+  private readonly typescript: typeof ts
+  private readonly configurationManager: PluginConfigurationManager
+  private readonly virtualDocumentFactory: VirtualDocumentProvider
   private cssLanguageServiceInstance?: CssLanguageService
   private scssLanguageServiceInstance?: ScssLanguageService
   private completionsFeature?: CompletionsFeature
@@ -40,14 +44,36 @@ export class StyledTemplateLanguageService implements TemplateLanguageService {
   private codeActionsFeature?: CodeActionsFeature
   private foldingFeature?: FoldingFeature
   private virtualDocumentSessionProviderInstance?: VirtualDocumentSessionProvider
+  private readonly languageServiceFactory: StylesLanguageServiceFactory
+  private readonly emmetCompletionProvider: EmmetCompletionProvider
 
   public constructor(
-    private readonly typescript: typeof ts,
-    private readonly configurationManager: PluginConfigurationManager,
-    private readonly virtualDocumentFactory: VirtualDocumentProvider,
-    private readonly languageServiceFactory: StylesLanguageServiceFactory = new DefaultStylesLanguageServiceFactory(),
-    private readonly emmetCompletionProvider: EmmetCompletionProvider = new DefaultEmmetCompletionProvider(),
+    typescript: typeof ts,
+    configurationManager: PluginConfigurationManager,
+    virtualDocumentFactory: VirtualDocumentProvider,
+    logger: Logger,
+  )
+  public constructor(
+    typescript: typeof ts,
+    configurationManager: PluginConfigurationManager,
+    virtualDocumentFactory: VirtualDocumentProvider,
+    languageServiceFactory?: StylesLanguageServiceFactory,
+    emmetCompletionProvider?: EmmetCompletionProvider,
+  )
+  public constructor(
+    typescript: typeof ts,
+    configurationManager: PluginConfigurationManager,
+    virtualDocumentFactory: VirtualDocumentProvider,
+    loggerOrLanguageServiceFactory?: Logger | StylesLanguageServiceFactory,
+    emmetCompletionProvider: EmmetCompletionProvider = new DefaultEmmetCompletionProvider(),
   ) {
+    this.typescript = typescript
+    this.configurationManager = configurationManager
+    this.virtualDocumentFactory = virtualDocumentFactory
+    this.languageServiceFactory = isStylesLanguageServiceFactory(loggerOrLanguageServiceFactory)
+      ? loggerOrLanguageServiceFactory
+      : new DefaultStylesLanguageServiceFactory()
+    this.emmetCompletionProvider = emmetCompletionProvider
     configurationManager.onUpdatedConfig(() => {
       this.completionsFeature?.clearCache()
       this.cssLanguageServiceInstance?.configure(this.configurationManager.config)
@@ -174,4 +200,10 @@ export class StyledTemplateLanguageService implements TemplateLanguageService {
     }
     return this.scssLanguageServiceInstance
   }
+}
+
+function isStylesLanguageServiceFactory(
+  value: Logger | StylesLanguageServiceFactory | undefined,
+): value is StylesLanguageServiceFactory {
+  return value !== undefined && 'createCssLanguageService' in value
 }

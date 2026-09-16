@@ -42,6 +42,8 @@ jobs:
         run: yarn compile
       - name: Type checking
         run: yarn typecheck
+      - name: Package API and runtime
+        run: yarn test:package-api
       - name: Package contents
         run: npm pack --dry-run
   unit:

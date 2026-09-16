@@ -63,6 +63,7 @@ interface TSServerTextChange {
 }
 
 interface TSServerDiagnostic {
+  category: 'error' | 'warning' | 'suggestion' | 'message'
   code: number
   end: TSServerPosition
   start: TSServerPosition

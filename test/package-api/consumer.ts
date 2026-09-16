@@ -1,4 +1,5 @@
 import {
+  PluginConfigurationManager,
   type StyledPluginConfiguration,
   type StyledPluginEmmetConfiguration,
   type StyledPluginLintConfiguration,
@@ -7,9 +8,9 @@ import {
   type VirtualDocumentProvider,
   getTemplateSettings,
 } from '@styled/typescript-styled-plugin/api'
+import * as ts from 'typescript/lib/tsserverlibrary.js'
 
 void StyledTemplateLanguageService
-void getTemplateSettings
 
 declare const configuration: StyledPluginConfiguration
 declare const virtualDocumentProvider: VirtualDocumentProvider
@@ -40,8 +41,26 @@ const invalidEmmetConfiguration: StyledPluginEmmetConfiguration = {
   showAbbreviationSuggestion: true,
 }
 
+const configurationManager = new PluginConfigurationManager()
+const templateSettings = getTemplateSettings(configurationManager)
+const templateLanguageService = new StyledTemplateLanguageService(
+  ts,
+  configurationManager,
+  virtualDocumentProvider,
+  { log() {} },
+)
+const sourcePosition: ts.LineAndCharacter = virtualDocumentProvider.fromVirtualDocPosition({
+  line: 1,
+  character: 0,
+})
+const sourceOffset: number = virtualDocumentProvider.fromVirtualDocOffset(7, {} as never)
+
 void configuration
 void virtualDocumentProvider
 void typedConfiguration
 void invalidLintConfiguration
 void invalidEmmetConfiguration
+void templateSettings
+void templateLanguageService
+void sourcePosition
+void sourceOffset

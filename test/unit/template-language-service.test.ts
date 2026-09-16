@@ -10,6 +10,7 @@ import {
 } from '../../src/configuration/plugin-configuration'
 import {
   CssLanguageService,
+  EmmetCompletionProvider,
   StylesLanguageServiceFactory,
   ScssLanguageService,
 } from '../../src/features/styles-language-services'
@@ -108,6 +109,55 @@ describe('StyledTemplateLanguageService', () => {
     assert.match(ts.displayPartsToString(quickInfo.documentation), /Sets the color/i)
   })
 
+  it('should omit diagnostics and hover ranges that cross the virtual document wrapper', () => {
+    const context = createContext('color: red;')
+    const range = {
+      start: { line: 0, character: 0 },
+      end: { line: 1, character: 1 },
+    }
+    const service = createServiceWithLanguageServiceResponses({
+      diagnostics: [{ range, message: 'wrapper diagnostic' }],
+      hover: { range, contents: 'wrapper hover' },
+    })
+
+    assert.deepEqual(service.getSemanticDiagnostics(context), [])
+    assert.isUndefined(service.getQuickInfoAtPosition(context, context.toPosition(1)))
+  })
+
+  it('should omit code actions when any edit targets the virtual document wrapper', () => {
+    const context = createContext('color: reed;')
+    const service = createServiceWithLanguageServiceResponses({
+      codeActions: [
+        {
+          title: 'Fix color',
+          command: '_css.applyCodeAction',
+          arguments: [
+            undefined,
+            undefined,
+            [
+              {
+                range: {
+                  start: { line: 1, character: 7 },
+                  end: { line: 1, character: 11 },
+                },
+                newText: 'red',
+              },
+              {
+                range: {
+                  start: { line: 0, character: 0 },
+                  end: { line: 0, character: 1 },
+                },
+                newText: '',
+              },
+            ],
+          ],
+        },
+      ],
+    })
+
+    assert.deepEqual(service.getCodeFixesAtPosition(context, 0, context.text.length), [])
+  })
+
   it('should convert nested CSS folding ranges to template offsets', () => {
     const context = createContext(['a {', '  color: red;', '}', 'div {', '', '}'].join('\n'))
     const spans = createService().getOutliningSpans(context)
@@ -115,6 +165,15 @@ describe('StyledTemplateLanguageService', () => {
     assert.strictEqual(spans.length, 2)
     assert.deepEqual(spans[0]?.textSpan, { start: 0, length: 4 })
     assert.deepEqual(spans[1]?.textSpan, { start: 20, length: 6 })
+  })
+
+  it('should omit folding ranges that target the virtual document wrapper', () => {
+    const context = createContext('color: red;')
+    const service = createServiceWithLanguageServiceResponses({
+      foldingRanges: [{ startLine: 0, endLine: 1, endCharacter: 1 }],
+    })
+
+    assert.deepEqual(service.getOutliningSpans(context), [])
   })
 
   it('should use injected language services and reconfigure them on updates', () => {
@@ -136,6 +195,41 @@ describe('StyledTemplateLanguageService', () => {
     assert.strictEqual(factory.scssConfigurations.length, 2)
     assert.deepEqual(factory.cssConfigurations[1]?.tags, ['sty'])
     assert.deepEqual(factory.scssConfigurations[1]?.tags, ['sty'])
+  })
+
+  it('should invalidate completion results when configuration changes', () => {
+    const manager = new PluginConfigurationManager()
+    const emmetConfigurations: StyledPluginConfiguration['emmet'][] = []
+    const emmetCompletionProvider: EmmetCompletionProvider = {
+      doComplete(_document, _position, configuration) {
+        emmetConfigurations.push(configuration)
+        return {
+          isIncomplete: false,
+          items: [{ label: configuration.showSuggestionsAsSnippets ? 'updated' : 'initial' }],
+        }
+      },
+    }
+    const service = new StyledTemplateLanguageService(
+      ts,
+      manager,
+      new StyledVirtualDocumentProvider(ts),
+      createFakeLanguageServiceFactory(),
+      emmetCompletionProvider,
+    )
+    const context = createContext('m10')
+    const position = context.toPosition(context.text.length)
+
+    const initial = service.getCompletionsAtPosition(context, position)
+    service.getCompletionsAtPosition(context, position)
+    manager.updateFromPluginConfig({ emmet: { showSuggestionsAsSnippets: true } })
+    const updated = service.getCompletionsAtPosition(context, position)
+
+    assert.strictEqual(emmetConfigurations.length, 2)
+    assert.isUndefined(emmetConfigurations[0]?.showSuggestionsAsSnippets)
+    assert.isTrue(emmetConfigurations[1]?.showSuggestionsAsSnippets)
+    assert.isDefined(initial.entries.find((entry) => entry.name === 'initial'))
+    assert.isDefined(updated.entries.find((entry) => entry.name === 'updated'))
+    assert.isUndefined(updated.entries.find((entry) => entry.name === 'initial'))
   })
 
   it('should reuse parsed virtual documents across features and invalidate changed contexts', () => {
@@ -226,6 +320,15 @@ function createServiceWithCompletionItems(
   )
 }
 
+function createServiceWithLanguageServiceResponses(responses: FakeLanguageServiceResponses) {
+  return new StyledTemplateLanguageService(
+    ts,
+    new PluginConfigurationManager(),
+    new StyledVirtualDocumentProvider(ts),
+    createFakeLanguageServiceFactory([], responses),
+  )
+}
+
 function createCompletionItem(label: string, range: vscode.Range): vscode.CompletionItem {
   return {
     label,
@@ -237,6 +340,7 @@ function createFakeLanguageServiceFactory(
   completionItems:
     | vscode.CompletionItem[]
     | ((document: TextDocument) => vscode.CompletionItem[]) = [],
+  responses: FakeLanguageServiceResponses = {},
 ): StylesLanguageServiceFactory & {
   cssConfigurations: StyledPluginConfiguration[]
   scssConfigurations: StyledPluginConfiguration[]
@@ -283,18 +387,18 @@ function createFakeLanguageServiceFactory(
     },
     doHover() {
       hoverRequests++
-      return null
+      return responses.hover ?? null
     },
     doValidation() {
       validationRequests++
-      return []
+      return responses.diagnostics ?? []
     },
     doCodeActions() {
       codeActionRequests++
-      return []
+      return responses.codeActions ?? []
     },
     getFoldingRanges() {
-      return []
+      return responses.foldingRanges ?? []
     },
   }
 
@@ -321,6 +425,13 @@ function createFakeLanguageServiceFactory(
       return scssLanguageService
     },
   }
+}
+
+interface FakeLanguageServiceResponses {
+  readonly codeActions?: ReturnType<ScssLanguageService['doCodeActions']>
+  readonly diagnostics?: ReturnType<ScssLanguageService['doValidation']>
+  readonly foldingRanges?: ReturnType<ScssLanguageService['getFoldingRanges']>
+  readonly hover?: Exclude<ReturnType<ScssLanguageService['doHover']>, null>
 }
 
 function createContext(text: string, tagName = 'css'): TemplateContext {

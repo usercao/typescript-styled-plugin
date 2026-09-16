@@ -77,6 +77,54 @@ describe('Plugin lifecycle', () => {
     assert.isFalse(diagnostics.body.some((diagnostic) => diagnostic.code === cssDiagnosticCode))
   })
 
+  it('should apply CSS lint levels through plugin configuration', async () => {
+    const server = createServer()
+    const file = path.join(__dirname, '..', 'styled-project-fixture', 'main.ts')
+    openMockFile(server, file, 'const q = css`boarder: 1px solid black;`')
+    for (const unknownProperties of ['ignore', 'warning', 'error'] as const) {
+      server.sendCommand('configurePlugin', {
+        pluginName: '@styled/typescript-styled-plugin',
+        configuration: { lint: { unknownProperties } },
+      })
+      server.sendCommand('semanticDiagnosticsSync', { file })
+    }
+
+    await server.close()
+    const diagnostics = server
+      .getResponsesOfType('semanticDiagnosticsSync')
+      .map((response) =>
+        response.body.filter((diagnostic) => diagnostic.code === cssDiagnosticCode),
+      )
+    assert.deepEqual(diagnostics[0], [])
+    assert.strictEqual(diagnostics[1]?.[0]?.category, 'warning')
+    assert.strictEqual(diagnostics[2]?.[0]?.category, 'error')
+  })
+
+  it('should apply and reset valid CSS properties through plugin configuration', async () => {
+    const server = createServer()
+    const file = path.join(__dirname, '..', 'styled-project-fixture', 'main.ts')
+    openMockFile(server, file, 'const q = css`brand-tone: red;`')
+    server.sendCommand('configurePlugin', {
+      pluginName: '@styled/typescript-styled-plugin',
+      configuration: { lint: { validProperties: ['brand-tone'] } },
+    })
+    server.sendCommand('semanticDiagnosticsSync', { file })
+    server.sendCommand('configurePlugin', {
+      pluginName: '@styled/typescript-styled-plugin',
+      configuration: {},
+    })
+    server.sendCommand('semanticDiagnosticsSync', { file })
+
+    await server.close()
+    const diagnostics = server
+      .getResponsesOfType('semanticDiagnosticsSync')
+      .map((response) =>
+        response.body.filter((diagnostic) => diagnostic.code === cssDiagnosticCode),
+      )
+    assert.deepEqual(diagnostics[0], [])
+    assert.strictEqual(diagnostics[1]?.[0]?.text, "Unknown property: 'brand-tone'")
+  })
+
   it('should leave unsupported TypeScript hosts functional without CSS diagnostics', async () => {
     const server = createServer('styled-project-fixture', {
       typescriptPackage: 'typescript-legacy',

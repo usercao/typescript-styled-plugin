@@ -89,6 +89,13 @@ The fixture writes verbose tsserver output to
 request handling after a failing scenario. Do not commit changes to this
 generated log.
 
+The only runtime call into `typescript-template-language-service-decorator` is
+in `src/tsserver/tsserver-plugin.ts`. Keep that integration direct until a
+confirmed compatibility defect requires a local adapter. Changes at this
+boundary must run `yarn test:e2e:current`; the lifecycle and syntax scenarios
+verify plugin loading, configured tag matching, and tag configuration updates
+through a real TypeScript 6.0.3 tsserver host.
+
 ## Testing changes
 
 Add a unit test when changing template substitution, virtual document mapping,

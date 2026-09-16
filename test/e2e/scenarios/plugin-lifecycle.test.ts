@@ -37,7 +37,7 @@ describe('Plugin lifecycle', () => {
     assert.isTrue(getFirstResponseOfType('completions', server).success)
   })
 
-  it('should apply updated tags without returning cached completions from the old configuration', async () => {
+  it('should apply and reset tags through the template decorator configuration', async () => {
     const server = createServer()
     const file = path.join(__dirname, '..', 'styled-project-fixture', 'main.ts')
     openMockFile(server, file, 'const q = sty`color:`')
@@ -47,12 +47,18 @@ describe('Plugin lifecycle', () => {
       configuration: { tags: ['sty'] },
     })
     getCompletions(server, file, 21)
+    server.sendCommand('configurePlugin', {
+      pluginName: '@styled/typescript-styled-plugin',
+      configuration: {},
+    })
+    getCompletions(server, file, 21)
 
     await server.close()
     const completions = server.getResponsesOfType('completions')
-    assert.strictEqual(completions.length, 2)
+    assert.strictEqual(completions.length, 3)
     assert.isFalse(completions[0].success)
     assert.isTrue(completions[1].body.some((item) => item.name === 'aliceblue'))
+    assert.isFalse(completions[2].success)
   })
 
   it('should suppress CSS diagnostics when validation is disabled', async () => {

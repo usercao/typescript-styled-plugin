@@ -1,4 +1,5 @@
 import { doComplete as emmetDoComplete } from '@vscode/emmet-helper'
+import type { VSCodeEmmetConfig } from '@vscode/emmet-helper'
 import { getCSSLanguageService, getSCSSLanguageService } from 'vscode-css-languageservice'
 import type { LanguageService } from 'vscode-css-languageservice'
 import { TextDocument } from 'vscode-languageserver-textdocument'
@@ -29,7 +30,7 @@ export interface EmmetCompletionProvider {
   doComplete(
     document: TextDocument,
     position: vscode.Position,
-    configuration: Readonly<Record<string, unknown>>,
+    configuration: VSCodeEmmetConfig,
   ): vscode.CompletionList | undefined
 }
 
@@ -47,7 +48,7 @@ export class DefaultEmmetCompletionProvider implements EmmetCompletionProvider {
   public doComplete(
     document: TextDocument,
     position: vscode.Position,
-    configuration: Readonly<Record<string, unknown>>,
+    configuration: VSCodeEmmetConfig,
   ): vscode.CompletionList | undefined {
     return emmetDoComplete(document, position, 'css', configuration)
   }

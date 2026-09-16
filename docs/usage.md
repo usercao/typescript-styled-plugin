@@ -99,6 +99,11 @@ Use `lint` to pass CSS validation settings to
 `vscode-css-languageservice`. Each listed setting accepts `"ignore"`,
 `"warning"`, or `"error"` unless noted otherwise.
 
+Library consumers can use the exported `StyledPluginLintConfiguration` and
+`StyledPluginEmmetConfiguration` types for static checking. The plugin still
+accepts unknown object settings from tsserver at runtime so newer upstream
+settings do not cause a host failure.
+
 ```json
 {
   "compilerOptions": {

@@ -1,11 +1,38 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
+import type { VSCodeEmmetConfig } from '@vscode/emmet-helper'
+
+export type StyledPluginLintLevel = 'ignore' | 'warning' | 'error'
+
+export interface StyledPluginLintConfiguration {
+  readonly argumentsInColorFunction?: StyledPluginLintLevel
+  readonly boxModel?: StyledPluginLintLevel
+  readonly compatibleVendorPrefixes?: StyledPluginLintLevel
+  readonly duplicateProperties?: StyledPluginLintLevel
+  readonly emptyRules?: StyledPluginLintLevel
+  readonly float?: StyledPluginLintLevel
+  readonly fontFaceProperties?: StyledPluginLintLevel
+  readonly hexColorLength?: StyledPluginLintLevel
+  readonly idSelector?: StyledPluginLintLevel
+  readonly ieHack?: StyledPluginLintLevel
+  readonly importStatement?: StyledPluginLintLevel
+  readonly important?: StyledPluginLintLevel
+  readonly propertyIgnoredDueToDisplay?: StyledPluginLintLevel
+  readonly universalSelector?: StyledPluginLintLevel
+  readonly unknownProperties?: StyledPluginLintLevel
+  readonly unknownVendorSpecificProperties?: StyledPluginLintLevel
+  readonly validProperties?: ReadonlyArray<string>
+  readonly vendorPrefix?: StyledPluginLintLevel
+  readonly zeroUnits?: StyledPluginLintLevel
+}
+
+export type StyledPluginEmmetConfiguration = Readonly<VSCodeEmmetConfig>
 
 export interface StyledPluginConfiguration {
   readonly tags: ReadonlyArray<string>
   readonly validate: boolean
-  readonly lint: Readonly<Record<string, unknown>>
-  readonly emmet: Readonly<Record<string, unknown>>
+  readonly lint: StyledPluginLintConfiguration
+  readonly emmet: StyledPluginEmmetConfiguration
 }
 
 export class PluginConfigurationManager {
@@ -45,7 +72,7 @@ export class PluginConfigurationManager {
         ...PluginConfigurationManager.defaultConfiguration.lint,
         ...toRecord(config.lint),
       },
-      emmet: toRecord(config.emmet),
+      emmet: toRecord(config.emmet) as StyledPluginEmmetConfiguration,
     }
 
     for (const listener of this.updateListeners) {

@@ -71,4 +71,21 @@ describe('PluginConfigurationManager', () => {
     assert.deepEqual(manager.config.lint, { emptyRules: 'ignore' })
     assert.deepEqual(manager.config.emmet, {})
   })
+
+  it('should preserve unknown object settings from runtime configuration', () => {
+    const manager = new PluginConfigurationManager()
+    const runtimeConfiguration: unknown = {
+      lint: { futureRule: 'warning' },
+      emmet: { futureOption: true },
+    }
+    manager.updateFromPluginConfig(
+      runtimeConfiguration as Parameters<PluginConfigurationManager['updateFromPluginConfig']>[0],
+    )
+
+    assert.deepEqual(manager.config.lint, {
+      emptyRules: 'ignore',
+      futureRule: 'warning',
+    } as unknown)
+    assert.deepEqual(manager.config.emmet, { futureOption: true } as unknown)
+  })
 })

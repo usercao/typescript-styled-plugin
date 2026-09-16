@@ -22,10 +22,15 @@ describe('TSServerMessageReader', () => {
     const reader = new TSServerMessageReader()
     const firstMessage = JSON.stringify({ message: '颜色' })
     const secondMessage = JSON.stringify({ message: 'next' })
+    const firstFrame = frame(firstMessage)
+    const multibyteCharacterStart = firstFrame.indexOf(Buffer.from('颜色'))
+    const splitAt = multibyteCharacterStart + 1
 
-    assert.deepEqual(reader.push(Buffer.concat([frame(firstMessage), frame(secondMessage)])), [
-      firstMessage,
-      secondMessage,
-    ])
+    assert.isAtLeast(multibyteCharacterStart, 0)
+    assert.deepEqual(reader.push(firstFrame.subarray(0, splitAt)), [])
+    assert.deepEqual(
+      reader.push(Buffer.concat([firstFrame.subarray(splitAt), frame(secondMessage)])),
+      [firstMessage, secondMessage],
+    )
   })
 })

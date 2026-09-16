@@ -37,7 +37,7 @@ interface TSServerResponse<Command extends string, Body, Metadata = undefined> {
 interface TSServerCompletionEntry {
   kindModifiers?: string
   name: string
-  replacementSpan: {
+  replacementSpan?: {
     end: TSServerPosition
     start: TSServerPosition
   }

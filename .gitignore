@@ -3,11 +3,9 @@ node_modules/
 *.swp
 *.swo
 .DS_Store
-*.log
 log.txt
 .yarn/*
 
-test-workspace
 lib
 
 # Local documentation that should not be committed.

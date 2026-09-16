@@ -7,6 +7,7 @@
   },
   "devDependencies": {
     "typescript-current": "npm:typescript@6.0.3",
-    "typescript-legacy": "npm:typescript@5.9.3"
+    "typescript-legacy": "npm:typescript@5.9.3",
+    "typescript-minimum": "npm:typescript@6.0.2"
   }
 }

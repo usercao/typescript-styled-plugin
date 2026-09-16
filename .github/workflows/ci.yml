@@ -63,18 +63,32 @@ jobs:
         run: yarn compile
       - run: yarn test:unit
   e2e:
-    name: E2E Tests
+    name: E2E (${{ matrix.name }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Node 22.12 / TypeScript 6.0.2
+            node-version: 22.12.0
+            typescript-package: typescript-minimum
+          - name: Node 22.12 / TypeScript current
+            node-version: 22.12.0
+            typescript-package: typescript-current
+          - name: Node 24 / TypeScript current
+            node-version: 24.20.0
+            typescript-package: typescript-current
     steps:
       - name: Checkout
         uses: actions/checkout@v5
       - name: Install Node.js
         uses: actions/setup-node@v5
         with:
-          node-version: 24.20.0
+          node-version: ${{ matrix.node-version }}
           cache: yarn
       - run: corepack enable
       - run: yarn install --immutable
-      - name: Compiling
-        run: yarn compile
-      - run: yarn test:e2e:current
+      - name: Run tsserver scenarios
+        run: yarn test:e2e
+        env:
+          TSSERVER_TYPESCRIPT_PACKAGE: ${{ matrix.typescript-package }}

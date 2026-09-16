@@ -5,7 +5,7 @@ This document describes the local workflow for maintaining
 
 ## Requirements
 
-- Node.js 24.11.0 or newer.
+- Node.js 22.12.0 or newer.
 - Corepack and Yarn 4.18.0, as declared in `package.json`.
 - Git for contributing changes.
 
@@ -37,6 +37,7 @@ Do not install dependencies inside individual fixture directories.
 | `yarn test:unit`        | Run unit tests in `test/unit`.                                                               |
 | `yarn test:e2e`         | Rebuild and run the Node tsserver scenarios in `test/e2e/scenarios`.                         |
 | `yarn test:e2e:current` | Run E2E scenarios against the `typescript-current` workspace alias.                          |
+| `yarn test:e2e:minimum` | Run E2E scenarios against the minimum supported TypeScript workspace alias.                  |
 | `yarn test:package-api` | Verify that the built public API can be consumed by TypeScript.                              |
 | `yarn verify`           | Run formatting, linting, type checking, all tests, API validation, and `npm pack --dry-run`. |
 
@@ -107,8 +108,8 @@ without a process boundary. Add or update a tsserver scenario when the change
 affects plugin discovery, tsserver protocol behavior, source-file handling, or
 the interaction between the plugin and a real TypeScript host.
 
-The standard E2E suite verifies Node 24 and the current TypeScript 6 tsserver
-path. It does not establish compatibility with a specific editor. Before
+CI verifies the Node 22.12 minimum with TypeScript 6.0.2 and the current
+Node/TypeScript combination. This does not establish compatibility with a specific editor. Before
 claiming support for an additional host, verify its TypeScript and Node versions
 meet the package requirements, that it supports synchronous `require(ESM)`, and
 that it can load the plugin through the normal `plugins` configuration path.

@@ -1,6 +1,7 @@
 import { defineConfig } from 'tsdown'
 
 export default defineConfig({
+  copy: [{ from: 'types/index.d.cts' }],
   dts: true,
   entry: {
     index: 'src/index.ts',
@@ -16,5 +17,5 @@ export default defineConfig({
   format: 'esm',
   outDir: 'lib',
   platform: 'node',
-  target: 'node24',
+  target: 'node22',
 })

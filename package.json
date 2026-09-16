@@ -30,9 +30,14 @@
   "types": "./lib/index.d.mts",
   "exports": {
     ".": {
-      "types": "./lib/index.d.mts",
-      "import": "./lib/index.mjs",
-      "require": "./lib/index.mjs"
+      "import": {
+        "types": "./lib/index.d.mts",
+        "default": "./lib/index.mjs"
+      },
+      "require": {
+        "types": "./lib/index.d.cts",
+        "default": "./lib/index.mjs"
+      }
     },
     "./api": {
       "types": "./lib/esm/api.d.mts",
@@ -49,6 +54,7 @@
     "test": "yarn test:unit && yarn test:e2e",
     "test:e2e": "yarn compile && vitest run test/e2e/scenarios --configLoader runner",
     "test:e2e:current": "TSSERVER_TYPESCRIPT_PACKAGE=typescript-current yarn test:e2e",
+    "test:e2e:minimum": "TSSERVER_TYPESCRIPT_PACKAGE=typescript-minimum yarn test:e2e",
     "test:package-api": "yarn compile && tsc --noEmit -p test/package-api && node test/package-api/runtime.ts",
     "test:unit": "vitest run test/unit --configLoader runner",
     "typecheck": "tsc --noEmit -p . && tsc --noEmit -p test/e2e",
@@ -73,7 +79,7 @@
     "vitest": "^5.0.0"
   },
   "engines": {
-    "node": ">=24.11.0"
+    "node": ">=22.12.0"
   },
   "packageManager": "yarn@4.18.0"
 }

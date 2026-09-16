@@ -15,7 +15,7 @@ Cross-editor TypeScript Server plugin for CSS IntelliSense in [styled-components
 ## Requirements
 
 - TypeScript 6.x.
-- Node.js 24.11.0 or newer in the tsserver host.
+- Node.js 22.12.0 or newer in the tsserver host.
 - Synchronous `require(ESM)` support. The ESM plugin module graph must not use top-level `await`.
 
 The automated suite covers the standard Node.js tsserver path. An editor must

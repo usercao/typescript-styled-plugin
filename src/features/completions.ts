@@ -235,6 +235,16 @@ function translateCompletionEntry(
     kindModifiers: getKindModifiers(item),
     sortText: item.sortText || item.label,
   }
+  const insertText = textEdit?.newText ?? item.insertText
+  if (insertText !== undefined) {
+    entry.insertText = insertText
+  }
+  if (item.insertTextFormat === vscode.InsertTextFormat.Snippet) {
+    entry.isSnippet = true
+  }
+  if (item.filterText !== undefined) {
+    entry.filterText = item.filterText
+  }
   if (range) {
     entry.replacementSpan = {
       start: start - templateStart,

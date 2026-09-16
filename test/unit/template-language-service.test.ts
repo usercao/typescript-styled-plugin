@@ -106,6 +106,43 @@ describe('StyledTemplateLanguageService', () => {
     assert.deepEqual(entry.replacementSpan, { start: 7, length: 2 })
   })
 
+  it('should map completion insertion text, snippet format, and filter text', () => {
+    const context = createContext('bor')
+    const completion = createServiceWithCompletionItems([
+      {
+        label: 'border',
+        insertText: 'ignored',
+        insertTextFormat: vscode.InsertTextFormat.Snippet,
+        filterText: 'border',
+        textEdit: {
+          newText: 'border: ${1:1px} ${2:solid} ${3:black};$0',
+          range: {
+            start: { line: 1, character: 0 },
+            end: { line: 1, character: 3 },
+          },
+        },
+      },
+      {
+        label: 'var',
+        insertText: 'var($1)',
+        insertTextFormat: vscode.InsertTextFormat.Snippet,
+      },
+    ]).getCompletionsAtPosition(context, context.toPosition(context.text.length))
+    const border = completion.entries.find((entry) => entry.name === 'border')
+    const variable = completion.entries.find((entry) => entry.name === 'var')
+
+    assert.isDefined(border)
+    assert.strictEqual(border.insertText, 'border: ${1:1px} ${2:solid} ${3:black};$0')
+    assert.isTrue(border.isSnippet)
+    assert.strictEqual(border.filterText, 'border')
+    assert.deepEqual(border.replacementSpan, { start: 0, length: 3 })
+
+    assert.isDefined(variable)
+    assert.strictEqual(variable.insertText, 'var($1)')
+    assert.isTrue(variable.isSnippet)
+    assert.isUndefined(variable.replacementSpan)
+  })
+
   it('should not reuse completions between different virtual document wrappers', () => {
     const service = createServiceWithCompletionItems((document) => [
       { label: document.getText().startsWith('@keyframes') ? 'keyframes' : 'root' },

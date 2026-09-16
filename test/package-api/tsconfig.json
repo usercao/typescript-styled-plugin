@@ -7,5 +7,5 @@
     "strict": true,
     "types": ["node"]
   },
-  "include": ["consumer.ts", "runtime.ts"]
+  "include": ["consumer.cts", "consumer.ts", "runtime.ts"]
 }

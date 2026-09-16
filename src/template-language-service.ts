@@ -115,8 +115,9 @@ export class StyledTemplateLanguageService implements TemplateLanguageService {
     context: TemplateContext,
     start: number,
     end: number,
+    errorCodes: readonly number[],
   ): ts.CodeAction[] {
-    return this.codeActions.getCodeFixesAtPosition(context, start, end)
+    return this.codeActions.getCodeFixesAtPosition(context, start, end, errorCodes)
   }
 
   public getOutliningSpans(context: TemplateContext): ts.OutliningSpan[] {

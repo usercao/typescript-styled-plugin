@@ -15,7 +15,7 @@ export function openMockFile(
         scriptKindName,
       },
     },
-    false,
+    true,
   )
   return server
 }

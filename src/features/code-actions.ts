@@ -25,7 +25,12 @@ export class CodeActionsFeature {
     context: TemplateContext,
     start: number,
     end: number,
+    errorCodes: readonly number[],
   ): ts.CodeAction[] {
+    if (!errorCodes.includes(CSS_DIAGNOSTIC_CODE)) {
+      return []
+    }
+
     const { document, stylesheet } = this.virtualDocumentSessionProvider.getParsedDocument(context)
     const range = this.toRange(context, start, end)
     const diagnostics = this.scssLanguageService
@@ -93,9 +98,20 @@ export class CodeActionsFeature {
 }
 
 function overlaps(left: vscode.Range, right: vscode.Range): boolean {
+  if (isEqual(right.start, right.end)) {
+    return !isBefore(right.start, left.start) && isBefore(right.start, left.end)
+  }
   return !isAfter(left.end, right.start) && !isAfter(right.end, left.start)
+}
+
+function isEqual(left: vscode.Position, right: vscode.Position): boolean {
+  return left.line === right.line && left.character === right.character
 }
 
 function isAfter(left: vscode.Position, right: vscode.Position): boolean {
   return right.line > left.line || (right.line === left.line && right.character >= left.character)
+}
+
+function isBefore(left: vscode.Position, right: vscode.Position): boolean {
+  return left.line < right.line || (left.line === right.line && left.character < right.character)
 }

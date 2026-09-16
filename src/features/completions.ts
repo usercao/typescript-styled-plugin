@@ -3,7 +3,7 @@ import type * as ts from 'typescript/lib/tsserverlibrary.js'
 import type { TextDocument } from 'vscode-languageserver-textdocument'
 import * as vscode from 'vscode-languageserver-types'
 
-import type { StyledPluginConfiguration } from '../configuration/plugin-configuration.ts'
+import type { ResolvedStyledPluginConfiguration } from '../configuration/plugin-configuration.ts'
 import type { VirtualDocumentProvider } from '../virtual-document/styled-virtual-document-provider.ts'
 import type { VirtualDocumentSessionProvider } from '../virtual-document/virtual-document-session-provider.ts'
 import type {
@@ -33,7 +33,7 @@ export class CompletionsFeature {
     private readonly cssLanguageService: CssLanguageService,
     private readonly scssLanguageService: ScssLanguageService,
     private readonly emmetCompletionProvider: EmmetCompletionProvider,
-    private readonly getConfiguration: () => StyledPluginConfiguration,
+    private readonly getConfiguration: () => ResolvedStyledPluginConfiguration,
   ) {}
 
   public clearCache() {

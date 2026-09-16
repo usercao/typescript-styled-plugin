@@ -261,7 +261,7 @@ describe('StyledTemplateLanguageService', () => {
       ],
     })
 
-    assert.deepEqual(service.getCodeFixesAtPosition(context, 0, context.text.length), [])
+    assert.deepEqual(service.getCodeFixesAtPosition(context, 0, context.text.length, [9999]), [])
   })
 
   it('should convert nested CSS folding ranges to template offsets', () => {
@@ -353,7 +353,7 @@ describe('StyledTemplateLanguageService', () => {
     service.getSemanticDiagnostics(context)
     service.getQuickInfoAtPosition(context, context.toPosition(1))
     service.getCompletionsAtPosition(context, context.toPosition(context.text.length))
-    service.getCodeFixesAtPosition(context, 0, context.text.length)
+    service.getCodeFixesAtPosition(context, 0, context.text.length, [9999])
     service.getOutliningSpans(context)
 
     assert.strictEqual(createVirtualDocument.mock.calls.length, 1)

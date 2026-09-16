@@ -27,6 +27,44 @@ describe('Code fixes', () => {
     })
   })
 
+  it('should return a code fix when the cursor is at the diagnostic start', () => {
+    const server = createServer()
+    openMockFile(server, fixtureFileName, 'const q = css`boarder: 1px solid black;`')
+    server.sendCommand('getCodeFixes', {
+      file: fixtureFileName,
+      startLine: 1,
+      startOffset: 15,
+      endLine: 1,
+      endOffset: 15,
+      errorCodes: [9999],
+    })
+
+    return server.close().then(() => {
+      const response = getFirstResponseOfType('getCodeFixes', server)
+      assert.isTrue(response.success)
+      assert.isOk(response.body.find((fix) => fix.description === "Rename to 'border'"))
+    })
+  })
+
+  it('should not return CSS code fixes for unrelated diagnostic codes', () => {
+    const server = createServer()
+    openMockFile(server, fixtureFileName, 'const q = css`boarder: 1px solid black;`')
+    server.sendCommand('getCodeFixes', {
+      file: fixtureFileName,
+      startLine: 1,
+      startOffset: 16,
+      endLine: 1,
+      endOffset: 16,
+      errorCodes: [2304],
+    })
+
+    return server.close().then(() => {
+      const response = getFirstResponseOfType('getCodeFixes', server)
+      assert.isTrue(response.success)
+      assert.strictEqual(response.body.length, 0)
+    })
+  })
+
   it('should not return code fixes for correctly spelled properties', () => {
     const server = createServer()
     openMockFile(server, fixtureFileName, 'const q = css`border: 1px solid black;`')

@@ -30,6 +30,7 @@ interface TSServerResponse<Command extends string, Body, Metadata = undefined> {
   command: Command
   message?: string
   metadata: Metadata
+  request_seq: number
   success: boolean
   type: 'response'
 }
@@ -103,9 +104,9 @@ export interface TSServerOptions {
 }
 
 export class TSServer {
-  private readonly exitPromise: Promise<number | null>
+  private readonly exitPromise: Promise<void>
   private isClosed = false
-  private pendingResponses = 0
+  private readonly pendingResponses = new Set<number>()
   private sequence = 0
   private readonly server
   public readonly responses: TSServerProtocolResponse[] = []
@@ -134,8 +135,30 @@ export class TSServer {
         stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
       },
     )
+    let stderr = ''
+    server.stderr?.on('data', (chunk: Buffer) => {
+      stderr = (stderr + chunk.toString('utf8')).slice(-8_192)
+    })
     this.exitPromise = new Promise((resolve, reject) => {
-      server.on('exit', (code) => resolve(code))
+      server.on('close', (code, signal) => {
+        if (code !== 0 || signal !== null) {
+          reject(
+            new Error(
+              `tsserver exited with code ${String(code)} and signal ${String(signal)}${stderr ? `\n${stderr}` : ''}`,
+            ),
+          )
+          return
+        }
+        if (this.pendingResponses.size > 0) {
+          reject(
+            new Error(
+              `tsserver exited before responding to requests: ${[...this.pendingResponses].join(', ')}`,
+            ),
+          )
+          return
+        }
+        resolve()
+      })
       server.on('error', (reason) => reject(reason))
     })
     if (server.stdout === null || server.stdin === null) {
@@ -157,10 +180,10 @@ export class TSServer {
     if (this.isClosed) {
       throw new Error('server is closed')
     }
-    if (responseExpected) {
-      ++this.pendingResponses
-    }
     const seq = ++this.sequence
+    if (responseExpected) {
+      this.pendingResponses.add(seq)
+    }
     const req = JSON.stringify({ seq, type: 'request', ...command }) + '\n'
     this.server.stdin.write(req)
   }
@@ -172,7 +195,7 @@ export class TSServer {
   close() {
     if (!this.isClosed) {
       this.isClosed = true
-      if (this.pendingResponses <= 0) {
+      if (this.pendingResponses.size === 0) {
         this.shutdown()
       }
     }
@@ -190,9 +213,11 @@ export class TSServer {
         return
       }
 
-      this.responses.push(result)
-      --this.pendingResponses
-      if (this.pendingResponses <= 0 && this.isClosed) {
+      this.pendingResponses.delete(result.request_seq)
+      if (isKnownTSServerResponse(result)) {
+        this.responses.push(result)
+      }
+      if (this.pendingResponses.size === 0 && this.isClosed) {
         this.shutdown()
       }
     } catch {
@@ -209,7 +234,14 @@ export class TSServer {
   }
 }
 
-function isTSServerResponse(value: unknown): value is TSServerProtocolResponse {
+interface GenericTSServerResponse {
+  command: string
+  request_seq: number
+  success: boolean
+  type: 'response'
+}
+
+function isTSServerResponse(value: unknown): value is GenericTSServerResponse {
   if (typeof value !== 'object' || value === null) {
     return false
   }
@@ -218,8 +250,23 @@ function isTSServerResponse(value: unknown): value is TSServerProtocolResponse {
   return (
     response.type === 'response' &&
     typeof response.command === 'string' &&
+    typeof response.request_seq === 'number' &&
     typeof response.success === 'boolean'
   )
+}
+
+function isKnownTSServerResponse(
+  response: GenericTSServerResponse,
+): response is TSServerProtocolResponse {
+  return [
+    'completionEntryDetails',
+    'completions',
+    'configurePlugin',
+    'getCodeFixes',
+    'getOutliningSpans',
+    'quickinfo',
+    'semanticDiagnosticsSync',
+  ].includes(response.command)
 }
 
 function createServer(project?: string, options?: TSServerOptions) {

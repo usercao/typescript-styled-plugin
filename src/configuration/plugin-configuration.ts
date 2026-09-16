@@ -36,6 +36,13 @@ export interface StyledPluginEmmetConfiguration {
 }
 
 export interface StyledPluginConfiguration {
+  readonly tags?: ReadonlyArray<string>
+  readonly validate?: boolean
+  readonly lint?: StyledPluginLintConfiguration
+  readonly emmet?: StyledPluginEmmetConfiguration
+}
+
+export interface ResolvedStyledPluginConfiguration {
   readonly tags: ReadonlyArray<string>
   readonly validate: boolean
   readonly lint: StyledPluginLintConfiguration
@@ -43,7 +50,7 @@ export interface StyledPluginConfiguration {
 }
 
 export class PluginConfigurationManager {
-  private static readonly defaultConfiguration: StyledPluginConfiguration = {
+  private static readonly defaultConfiguration: ResolvedStyledPluginConfiguration = {
     tags: [
       'styled',
       'css',
@@ -59,9 +66,10 @@ export class PluginConfigurationManager {
   }
 
   private readonly updateListeners = new Set<() => void>()
-  private configuration: StyledPluginConfiguration = PluginConfigurationManager.defaultConfiguration
+  private configuration: ResolvedStyledPluginConfiguration =
+    PluginConfigurationManager.defaultConfiguration
 
-  public get config(): StyledPluginConfiguration {
+  public get config(): ResolvedStyledPluginConfiguration {
     return this.configuration
   }
 

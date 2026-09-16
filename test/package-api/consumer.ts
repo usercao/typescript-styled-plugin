@@ -30,6 +30,7 @@ const typedConfiguration: StyledPluginConfiguration = {
   lint: lintConfiguration,
   emmet: emmetConfiguration,
 }
+const partialConfiguration: StyledPluginConfiguration = { validate: false }
 
 const invalidLintConfiguration: StyledPluginLintConfiguration = {
   // @ts-expect-error lint keys must be supported by the CSS language service.
@@ -58,6 +59,7 @@ const sourceOffset: number = virtualDocumentProvider.fromVirtualDocOffset(7, {} 
 void configuration
 void virtualDocumentProvider
 void typedConfiguration
+void partialConfiguration
 void invalidLintConfiguration
 void invalidEmmetConfiguration
 void templateSettings

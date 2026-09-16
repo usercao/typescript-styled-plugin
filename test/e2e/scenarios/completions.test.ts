@@ -39,7 +39,7 @@ describe('Completions', () => {
 
   it('should return property value completions for multiline string', () => {
     const server = createServerWithMockFile(['const q = css`', 'color:', '`'].join('\n'))
-    server.sendCommand('completions', { file: mockFileName, offset: 22, line: 1 })
+    server.sendCommand('completions', { file: mockFileName, offset: 7, line: 2 })
 
     return server.close().then(() => {
       const completionsResponse = getFirstResponseOfType('completions', server)

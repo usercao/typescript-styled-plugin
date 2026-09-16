@@ -1,13 +1,12 @@
-import path from 'node:path'
-
 import { assert, describe, it } from 'vitest'
 
+import { getFixtureFilePath } from '../fixture-paths'
 import createServer from '../tsserver-fixture'
 import { getFirstResponseOfType, openMockFile } from './tsserver-test-helpers'
 
 const createMockFileForServer = (fileContents: string, project = 'styled-project-fixture') => {
   const server = createServer(project)
-  const mockFileName = path.join(__dirname, '..', project, 'main.ts')
+  const mockFileName = getFixtureFilePath(project)
   openMockFile(server, mockFileName, fileContents)
   return { server, mockFileName }
 }

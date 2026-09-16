@@ -36,7 +36,7 @@ Add the plugin to the project `tsconfig.json` or `jsconfig.json`:
 
 The editor must be configured to use that workspace TypeScript SDK. VS Code,
 Sublime Text, and Visual Studio setup paths are described in the
-[README](../README.md#editor-configuration); each requires validation against
+[README](../README.md#editor-integration); each requires validation against
 the actual editor's tsserver host and Node runtime.
 
 ## Tagged templates

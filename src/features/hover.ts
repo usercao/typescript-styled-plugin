@@ -2,7 +2,10 @@ import type { TemplateContext } from 'typescript-template-language-service-decor
 import type * as ts from 'typescript/lib/tsserverlibrary.js'
 import * as vscode from 'vscode-languageserver-types'
 
-import type { VirtualDocumentProvider } from '../virtual-document/styled-virtual-document-provider.ts'
+import {
+  fromVirtualDocPosition,
+  type VirtualDocumentProvider,
+} from '../virtual-document/styled-virtual-document-provider.ts'
 import type { VirtualDocumentSessionProvider } from '../virtual-document/virtual-document-session-provider.ts'
 import type { ScssLanguageService } from './styles-language-services.ts'
 
@@ -34,12 +37,13 @@ export class HoverFeature {
     context: TemplateContext,
   ): ts.QuickInfo | undefined {
     const documentation = toDisplayParts(hover.contents)
-    const startPosition = this.virtualDocumentFactory.fromVirtualDocPosition(
+    const startPosition = fromVirtualDocPosition(
+      this.virtualDocumentFactory,
       hover.range ? hover.range.start : position,
       context,
     )
     const endPosition = hover.range
-      ? this.virtualDocumentFactory.fromVirtualDocPosition(hover.range.end, context)
+      ? fromVirtualDocPosition(this.virtualDocumentFactory, hover.range.end, context)
       : undefined
     if (!startPosition || (hover.range && !endPosition)) {
       return undefined

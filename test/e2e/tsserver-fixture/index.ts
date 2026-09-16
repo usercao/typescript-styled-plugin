@@ -1,6 +1,12 @@
 import { fork } from 'node:child_process'
 import { existsSync } from 'node:fs'
-import path from 'node:path'
+import { createRequire } from 'node:module'
+import * as path from 'node:path'
+
+import { e2eRoot } from '../fixture-paths'
+import { TSServerMessageReader } from './message-reader'
+
+const require = createRequire(import.meta.url)
 
 export interface TSServerResponseMap {
   completionEntryDetails: TSServerResponse<
@@ -107,7 +113,7 @@ export class TSServer {
   constructor(project = 'styled-project-fixture', options: TSServerOptions = {}) {
     const typescriptPackage =
       options.typescriptPackage || process.env.TSSERVER_TYPESCRIPT_PACKAGE || 'typescript'
-    const logfile = path.join(__dirname, 'log.txt')
+    const logfile = path.join(import.meta.dirname, 'log.txt')
     const typescriptPackageJson = require.resolve(`${typescriptPackage}/package.json`)
     const tsserverPath = path.join(path.dirname(typescriptPackageJson), 'lib', 'tsserver.js')
     if (!existsSync(tsserverPath)) {
@@ -121,10 +127,10 @@ export class TSServer {
         '--logFile',
         logfile,
         '--pluginProbeLocations',
-        (options.pluginProbeLocations || [path.join(__dirname, '..')]).join(','),
+        (options.pluginProbeLocations || [e2eRoot]).join(','),
       ],
       {
-        cwd: path.join(__dirname, '..', project),
+        cwd: path.join(e2eRoot, project),
         stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
       },
     )
@@ -137,39 +143,10 @@ export class TSServer {
     }
 
     const { stdin, stdout } = server
-    stdout.setEncoding('utf-8')
-    let output = ''
-    stdout.on('data', (chunk: string) => {
-      output += chunk
-
-      while (output.length > 0) {
-        const headerEnd = output.indexOf('\r\n\r\n')
-        if (headerEnd === -1) {
-          const lineEnd = output.indexOf('\n')
-          if (lineEnd === -1) {
-            return
-          }
-
-          const line = output.slice(0, lineEnd)
-          output = output.slice(lineEnd + 1)
-          this.handleMessage(line)
-          continue
-        }
-
-        const header = output.slice(0, headerEnd)
-        const contentLength = /^Content-Length: (\d+)$/im.exec(header)?.[1]
-        if (contentLength === undefined) {
-          output = output.slice(headerEnd + 4)
-          continue
-        }
-
-        const messageEnd = headerEnd + 4 + Number(contentLength)
-        if (output.length < messageEnd) {
-          return
-        }
-
-        this.handleMessage(output.slice(headerEnd + 4, messageEnd))
-        output = output.slice(messageEnd)
+    const messageReader = new TSServerMessageReader()
+    stdout.on('data', (chunk: Buffer) => {
+      for (const message of messageReader.push(chunk)) {
+        this.handleMessage(message)
       }
     })
 

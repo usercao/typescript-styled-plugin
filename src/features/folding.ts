@@ -2,7 +2,10 @@ import type { TemplateContext } from 'typescript-template-language-service-decor
 import type * as ts from 'typescript/lib/tsserverlibrary.js'
 import type { FoldingRange } from 'vscode-css-languageservice'
 
-import type { VirtualDocumentProvider } from '../virtual-document/styled-virtual-document-provider.ts'
+import {
+  fromVirtualDocPosition,
+  type VirtualDocumentProvider,
+} from '../virtual-document/styled-virtual-document-provider.ts'
 import type { VirtualDocumentSessionProvider } from '../virtual-document/virtual-document-session-provider.ts'
 import type { ScssLanguageService } from './styles-language-services.ts'
 
@@ -26,11 +29,13 @@ export class FoldingFeature {
     context: TemplateContext,
     range: FoldingRange,
   ): ts.OutliningSpan | undefined {
-    const startPosition = this.virtualDocumentFactory.fromVirtualDocPosition(
+    const startPosition = fromVirtualDocPosition(
+      this.virtualDocumentFactory,
       { line: range.startLine, character: range.startCharacter || 0 },
       context,
     )
-    const endPosition = this.virtualDocumentFactory.fromVirtualDocPosition(
+    const endPosition = fromVirtualDocPosition(
+      this.virtualDocumentFactory,
       { line: range.endLine, character: range.endCharacter || 0 },
       context,
     )

@@ -8,10 +8,6 @@ export interface VirtualDocumentProvider {
   createVirtualDocument(context: TemplateContext): TextDocument
   toVirtualDocPosition(position: ts.LineAndCharacter): ts.LineAndCharacter
   fromVirtualDocPosition(position: ts.LineAndCharacter): ts.LineAndCharacter
-  fromVirtualDocPosition(
-    position: ts.LineAndCharacter,
-    context: TemplateContext,
-  ): ts.LineAndCharacter | undefined
   toVirtualDocOffset(offset: number, context: TemplateContext): number
   fromVirtualDocOffset(offset: number, context: TemplateContext): number
   getVirtualDocumentWrapper(context: TemplateContext): string
@@ -32,25 +28,8 @@ export class StyledVirtualDocumentProvider implements VirtualDocumentProvider {
     return { line: position.line + 1, character: position.character }
   }
 
-  public fromVirtualDocPosition(position: ts.LineAndCharacter): ts.LineAndCharacter
-  public fromVirtualDocPosition(
-    position: ts.LineAndCharacter,
-    context: TemplateContext,
-  ): ts.LineAndCharacter | undefined
-  public fromVirtualDocPosition(
-    position: ts.LineAndCharacter,
-    context?: TemplateContext,
-  ): ts.LineAndCharacter | undefined {
-    const sourcePosition = { line: position.line - 1, character: position.character }
-    if (!context) {
-      return sourcePosition
-    }
-    const offset = context.toOffset(sourcePosition)
-    return offset >= 0 &&
-      offset <= context.text.length &&
-      positionsEqual(sourcePosition, context.toPosition(offset))
-      ? sourcePosition
-      : undefined
+  public fromVirtualDocPosition(position: ts.LineAndCharacter): ts.LineAndCharacter {
+    return { line: position.line - 1, character: position.character }
   }
 
   public toVirtualDocOffset(offset: number, context: TemplateContext): number {
@@ -69,6 +48,20 @@ export class StyledVirtualDocumentProvider implements VirtualDocumentProvider {
       ? StyledVirtualDocumentProvider.keyframesWrapper
       : StyledVirtualDocumentProvider.rootWrapper
   }
+}
+
+export function fromVirtualDocPosition(
+  provider: Pick<VirtualDocumentProvider, 'fromVirtualDocPosition'>,
+  position: ts.LineAndCharacter,
+  context: TemplateContext,
+): ts.LineAndCharacter | undefined {
+  const sourcePosition = provider.fromVirtualDocPosition(position)
+  const offset = context.toOffset(sourcePosition)
+  return offset >= 0 &&
+    offset <= context.text.length &&
+    positionsEqual(sourcePosition, context.toPosition(offset))
+    ? sourcePosition
+    : undefined
 }
 
 function getTagName(typescript: typeof ts, tag: ts.Expression | undefined): string | undefined {

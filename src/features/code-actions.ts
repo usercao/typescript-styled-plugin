@@ -2,7 +2,10 @@ import type { TemplateContext } from 'typescript-template-language-service-decor
 import type * as ts from 'typescript/lib/tsserverlibrary.js'
 import * as vscode from 'vscode-languageserver-types'
 
-import type { VirtualDocumentProvider } from '../virtual-document/styled-virtual-document-provider.ts'
+import {
+  fromVirtualDocPosition,
+  type VirtualDocumentProvider,
+} from '../virtual-document/styled-virtual-document-provider.ts'
 import type { VirtualDocumentSessionProvider } from '../virtual-document/virtual-document-session-provider.ts'
 import { CSS_DIAGNOSTIC_CODE } from './css-diagnostic-code.ts'
 import type { ScssLanguageService } from './styles-language-services.ts'
@@ -71,11 +74,12 @@ export class CodeActionsFeature {
     context: TemplateContext,
     edit: vscode.TextEdit,
   ): ts.FileTextChanges | undefined {
-    const startPosition = this.virtualDocumentFactory.fromVirtualDocPosition(
+    const startPosition = fromVirtualDocPosition(
+      this.virtualDocumentFactory,
       edit.range.start,
       context,
     )
-    const endPosition = this.virtualDocumentFactory.fromVirtualDocPosition(edit.range.end, context)
+    const endPosition = fromVirtualDocPosition(this.virtualDocumentFactory, edit.range.end, context)
     if (!startPosition || !endPosition) {
       return undefined
     }

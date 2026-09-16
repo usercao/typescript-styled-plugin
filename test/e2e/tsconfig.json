@@ -1,5 +1,8 @@
 {
   "extends": "../../tsconfig.json",
-  "include": ["tsserver-fixture", "scenarios"],
+  "compilerOptions": {
+    "module": "preserve"
+  },
+  "include": ["fixture-paths.ts", "tsserver-fixture", "scenarios"],
   "exclude": ["../../lib", "../../node_modules"]
 }

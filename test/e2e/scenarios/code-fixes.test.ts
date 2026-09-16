@@ -1,11 +1,10 @@
-import path from 'node:path'
-
 import { assert, describe, it } from 'vitest'
 
+import { getFixtureFilePath } from '../fixture-paths'
 import createServer from '../tsserver-fixture'
 import { getFirstResponseOfType, getResponsesOfType, openMockFile } from './tsserver-test-helpers'
 
-const fixtureFileName = path.join(__dirname, '..', 'styled-project-fixture', 'main.ts')
+const fixtureFileName = getFixtureFilePath()
 
 describe('Code fixes', () => {
   it('should return a code fix for a misspelled property', () => {

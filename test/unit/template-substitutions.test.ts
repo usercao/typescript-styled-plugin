@@ -33,7 +33,7 @@ describe('substituter', () => {
     assert.deepEqual(performSubstitutions('color: ${}'), 'color: xxx')
   })
 
-  it('should replace property with fake proeprty when placeholder is used in name (#52)', () => {
+  it('should replace property with fake property when placeholder is used in name (#52)', () => {
     assert.deepEqual(
       performSubstitutions(['width: 1px;', `\${123}: 1px;`, 'color: red;'].join('\n')),
       ['width: 1px;', `$axxxx: 1px;`, 'color: red;'].join('\n'),

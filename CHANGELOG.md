@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.0 - Unreleased
+
+- Require TypeScript 6 and Node.js 24.11 or newer for the ESM-only tsserver plugin.
+- Modernize the build, test, lint, formatting, CI, packaging, and maintenance workflows.
+- Expand language-service compatibility, regression coverage, and interactive request performance.
+
 ## 1.0.1 - December 11, 2023
 
 - Add support for `@container` queries by updating the CSS language service

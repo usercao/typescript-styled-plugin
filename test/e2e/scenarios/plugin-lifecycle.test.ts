@@ -1,7 +1,6 @@
-import path from 'node:path'
-
 import { assert, describe, it } from 'vitest'
 
+import { getFixtureFilePath } from '../fixture-paths'
 import createServer from '../tsserver-fixture'
 import { getFirstResponseOfType, openMockFile } from './tsserver-test-helpers'
 
@@ -14,7 +13,7 @@ function getCompletions(server: ReturnType<typeof createServer>, file: string, o
 describe('Plugin lifecycle', () => {
   it('should remain responsive when the configured plugin cannot be loaded', async () => {
     const server = createServer('plugin-missing-project-fixture')
-    const file = path.join(__dirname, '..', 'plugin-missing-project-fixture', 'main.ts')
+    const file = getFixtureFilePath('plugin-missing-project-fixture')
     openMockFile(server, file, 'const value = 1')
     getCompletions(server, file, 16)
 
@@ -24,7 +23,7 @@ describe('Plugin lifecycle', () => {
 
   it('should ignore malformed plugin configuration without crashing tsserver', async () => {
     const server = createServer()
-    const file = path.join(__dirname, '..', 'styled-project-fixture', 'main.ts')
+    const file = getFixtureFilePath()
     openMockFile(server, file, 'const q = css`color:`')
     server.sendCommand('configurePlugin', {
       pluginName: '@styled/typescript-styled-plugin',
@@ -39,7 +38,7 @@ describe('Plugin lifecycle', () => {
 
   it('should apply and reset tags through the template decorator configuration', async () => {
     const server = createServer()
-    const file = path.join(__dirname, '..', 'styled-project-fixture', 'main.ts')
+    const file = getFixtureFilePath()
     openMockFile(server, file, 'const q = sty`color:`')
     getCompletions(server, file, 21)
     server.sendCommand('configurePlugin', {
@@ -63,7 +62,7 @@ describe('Plugin lifecycle', () => {
 
   it('should suppress CSS diagnostics when validation is disabled', async () => {
     const server = createServer()
-    const file = path.join(__dirname, '..', 'styled-project-fixture', 'main.ts')
+    const file = getFixtureFilePath()
     openMockFile(server, file, 'const q = css`boarder: 1px solid black;`')
     server.sendCommand('configurePlugin', {
       pluginName: '@styled/typescript-styled-plugin',
@@ -79,7 +78,7 @@ describe('Plugin lifecycle', () => {
 
   it('should apply CSS lint levels through plugin configuration', async () => {
     const server = createServer()
-    const file = path.join(__dirname, '..', 'styled-project-fixture', 'main.ts')
+    const file = getFixtureFilePath()
     openMockFile(server, file, 'const q = css`boarder: 1px solid black;`')
     for (const unknownProperties of ['ignore', 'warning', 'error'] as const) {
       server.sendCommand('configurePlugin', {
@@ -102,7 +101,7 @@ describe('Plugin lifecycle', () => {
 
   it('should apply and reset valid CSS properties through plugin configuration', async () => {
     const server = createServer()
-    const file = path.join(__dirname, '..', 'styled-project-fixture', 'main.ts')
+    const file = getFixtureFilePath()
     openMockFile(server, file, 'const q = css`brand-tone: red;`')
     server.sendCommand('configurePlugin', {
       pluginName: '@styled/typescript-styled-plugin',
@@ -129,7 +128,7 @@ describe('Plugin lifecycle', () => {
     const server = createServer('styled-project-fixture', {
       typescriptPackage: 'typescript-legacy',
     })
-    const file = path.join(__dirname, '..', 'styled-project-fixture', 'main.ts')
+    const file = getFixtureFilePath()
     openMockFile(server, file, 'const q = css`boarder: 1px solid black;`')
     server.sendCommand('semanticDiagnosticsSync', { file })
 

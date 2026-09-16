@@ -2,7 +2,10 @@ import type { TemplateContext } from 'typescript-template-language-service-decor
 import * as ts from 'typescript/lib/tsserverlibrary.js'
 import { assert, describe, it } from 'vitest'
 
-import { StyledVirtualDocumentProvider } from '../../src/virtual-document/styled-virtual-document-provider'
+import {
+  fromVirtualDocPosition,
+  StyledVirtualDocumentProvider,
+} from '../../src/virtual-document/styled-virtual-document-provider'
 
 describe('StyledVirtualDocumentProvider', () => {
   it('should wrap normal templates in a root rule and map positions in both directions', () => {
@@ -70,10 +73,10 @@ describe('StyledVirtualDocumentProvider', () => {
       context.text.length + 1,
     )
     assert.strictEqual(
-      provider.fromVirtualDocPosition({ line: 0, character: 0 }, context),
+      fromVirtualDocPosition(provider, { line: 0, character: 0 }, context),
       undefined,
     )
-    assert.deepEqual(provider.fromVirtualDocPosition({ line: 1, character: 0 }, context), {
+    assert.deepEqual(fromVirtualDocPosition(provider, { line: 1, character: 0 }, context), {
       line: 0,
       character: 0,
     })
@@ -82,9 +85,27 @@ describe('StyledVirtualDocumentProvider', () => {
       character: 0,
     })
     assert.strictEqual(
-      provider.fromVirtualDocPosition({ line: 2, character: 0 }, context),
+      fromVirtualDocPosition(provider, { line: 2, character: 0 }, context),
       undefined,
     )
+  })
+
+  it('should validate positions returned by a legacy one-argument provider', () => {
+    const context = createContext('css', 'color: red;')
+    const provider = {
+      fromVirtualDocPosition(position: ts.LineAndCharacter) {
+        return { line: position.line - 1, character: position.character }
+      },
+    }
+
+    assert.strictEqual(
+      fromVirtualDocPosition(provider, { line: 0, character: 0 }, context),
+      undefined,
+    )
+    assert.deepEqual(fromVirtualDocPosition(provider, { line: 1, character: 0 }, context), {
+      line: 0,
+      character: 0,
+    })
   })
 })
 

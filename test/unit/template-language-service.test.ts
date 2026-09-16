@@ -1,6 +1,7 @@
 import type { TemplateContext } from 'typescript-template-language-service-decorator'
 import * as ts from 'typescript/lib/tsserverlibrary.js'
 import { assert, describe, it } from 'vitest'
+import * as vscode from 'vscode-languageserver-types'
 
 import {
   PluginConfigurationManager,
@@ -28,6 +29,44 @@ describe('StyledTemplateLanguageService', () => {
     assert.strictEqual(aliceblue.kind, ts.ScriptElementKind.constElement)
     assert.strictEqual(aliceblue.kindModifiers, 'color')
     assert.deepEqual(aliceblue.replacementSpan, { start: 6, length: 0 })
+  })
+
+  it('should omit completion edits that target the virtual document wrapper', () => {
+    const context = createContext('color:')
+    const completion = createServiceWithCompletionItems([
+      createCompletionItem('wrapper', {
+        start: { line: 0, character: 0 },
+        end: { line: 0, character: 1 },
+      }),
+    ]).getCompletionsAtPosition(context, context.toPosition(context.text.length))
+
+    assert.isUndefined(completion.entries.find((entry) => entry.name === 'wrapper'))
+  })
+
+  it('should omit completion edits that cross into the virtual document wrapper', () => {
+    const context = createContext('color:')
+    const completion = createServiceWithCompletionItems([
+      createCompletionItem('crossing', {
+        start: { line: 0, character: 0 },
+        end: { line: 1, character: 1 },
+      }),
+    ]).getCompletionsAtPosition(context, context.toPosition(context.text.length))
+
+    assert.isUndefined(completion.entries.find((entry) => entry.name === 'crossing'))
+  })
+
+  it('should map completion edits at the template end', () => {
+    const context = createContext('color:')
+    const completion = createServiceWithCompletionItems([
+      createCompletionItem('end', {
+        start: { line: 1, character: 6 },
+        end: { line: 1, character: 6 },
+      }),
+    ]).getCompletionsAtPosition(context, context.toPosition(context.text.length))
+    const end = completion.entries.find((entry) => entry.name === 'end')
+
+    assert.isDefined(end)
+    assert.deepEqual(end.replacementSpan, { start: 6, length: 0 })
   })
 
   it('should convert CSS hover documentation and ranges to template offsets', () => {
@@ -79,7 +118,25 @@ function createService() {
   )
 }
 
-function createFakeLanguageServiceFactory(): StylesLanguageServiceFactory & {
+function createServiceWithCompletionItems(completionItems: vscode.CompletionItem[]) {
+  return new StyledTemplateLanguageService(
+    ts,
+    new PluginConfigurationManager(),
+    new StyledVirtualDocumentProvider(ts),
+    createFakeLanguageServiceFactory(completionItems),
+  )
+}
+
+function createCompletionItem(label: string, range: vscode.Range): vscode.CompletionItem {
+  return {
+    label,
+    textEdit: { range, newText: label },
+  }
+}
+
+function createFakeLanguageServiceFactory(
+  completionItems: vscode.CompletionItem[] = [],
+): StylesLanguageServiceFactory & {
   cssConfigurations: StyledPluginConfiguration[]
   scssConfigurations: StyledPluginConfiguration[]
 } {
@@ -93,7 +150,7 @@ function createFakeLanguageServiceFactory(): StylesLanguageServiceFactory & {
     },
     setCompletionParticipants() {},
     doComplete() {
-      return { isIncomplete: false, items: [] }
+      return { isIncomplete: false, items: completionItems }
     },
   }
   const scssLanguageService: ScssLanguageService = {

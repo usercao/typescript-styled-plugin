@@ -161,9 +161,9 @@ function translateCompletionItemsToCompletionInfo(
     isGlobalCompletion: false,
     isMemberCompletion: false,
     isNewIdentifierLocation: false,
-    entries: items.items.map((item) =>
-      translateCompletionEntry(typescript, item, document, wrapper),
-    ),
+    entries: items.items
+      .map((item) => translateCompletionEntry(typescript, item, document, wrapper))
+      .filter((entry): entry is ts.CompletionEntry => entry !== undefined),
   }
 }
 
@@ -188,9 +188,17 @@ function translateCompletionEntry(
   item: vscode.CompletionItem,
   document: TextDocument,
   wrapper: string,
-): ts.CompletionEntry {
+): ts.CompletionEntry | undefined {
   const textEdit = item.textEdit
   const range = textEdit && 'range' in textEdit ? textEdit.range : undefined
+  const start = range ? document.offsetAt(range.start) : 0
+  const end = range ? document.offsetAt(range.end) : 0
+  const templateStart = wrapper.length
+  const templateEnd = document.getText().length - '\n}'.length
+  if (range && (start < templateStart || end < start || end > templateEnd)) {
+    return undefined
+  }
+
   return {
     name: item.label,
     kind: item.kind
@@ -199,8 +207,8 @@ function translateCompletionEntry(
     kindModifiers: getKindModifiers(item),
     sortText: item.sortText || item.label,
     replacementSpan: {
-      start: range ? document.offsetAt(range.start) - wrapper.length : 0,
-      length: range ? document.offsetAt(range.end) - document.offsetAt(range.start) : 0,
+      start: range ? start - templateStart : 0,
+      length: range ? end - start : 0,
     },
   }
 }

@@ -47,15 +47,18 @@ local gate and the closest equivalent to the CI workflow.
 
 Run `yarn benchmark` to execute `test/performance/template-language-service.bench.ts` with Node's native TypeScript transform and explicit garbage collection. The benchmark covers a 400-rule template, a template with 120 interpolations, and a warmed completion-cache lookup.
 
-On 2026-09-15 with Node.js 24.21.0 and Yarn 4.18.0, two local runs recorded the following ranges:
+On 2026-09-15 and 2026-09-16 with Node.js 24.21.0 and Yarn 4.18.0, five local
+runs recorded the following ranges:
 
 | Scenario                     | Mean latency   | Throughput          |
 | ---------------------------- | -------------- | ------------------- |
-| Large template completion    | 8.4-9.2 ms     | 115-122 ops/s       |
+| Large template completion    | 8.2-9.2 ms     | 115-124 ops/s       |
 | 120-interpolation completion | 2.5-2.7 ms     | 390-415 ops/s       |
-| Warmed cache completion      | 0.059-0.060 ms | 17,000-17,200 ops/s |
+| Warmed cache completion      | 0.059-0.061 ms | 16,800-17,200 ops/s |
 
-The retained heap delta after explicit garbage collection was 2.8-2.9 MB. This baseline does not indicate a need for additional caching or incremental parsing; repeat it before considering either optimization.
+The retained heap delta after explicit garbage collection was 2.8-3.0 MB. This
+baseline does not indicate a need for additional caching or incremental parsing;
+repeat it before considering either optimization.
 
 ## Project layout
 

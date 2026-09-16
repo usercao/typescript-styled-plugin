@@ -38,3 +38,18 @@ export function getResponsesOfType<Command extends keyof TSServerResponseMap>(
 ): TSServerResponseMap[Command][] {
   return server.getResponsesOfType(command)
 }
+
+export function getResponseForRequest<Command extends keyof TSServerResponseMap>(
+  command: Command,
+  requestSequence: number,
+  server: TSServer,
+): TSServerResponseMap[Command] {
+  const response = server.getResponseForRequest(command, requestSequence)
+  if (response === undefined) {
+    throw new Error(
+      `Expected tsserver response for command ${command} and request ${requestSequence}`,
+    )
+  }
+
+  return response
+}

@@ -2,7 +2,11 @@ import { assert, describe, it } from 'vitest'
 
 import { getFixtureFilePath } from '../fixture-paths'
 import createServer from '../tsserver-fixture'
-import { getFirstResponseOfType, getResponsesOfType, openMockFile } from './tsserver-test-helpers'
+import {
+  getFirstResponseOfType,
+  getResponseForRequest,
+  openMockFile,
+} from './tsserver-test-helpers'
 
 const fixtureFileName = getFixtureFilePath()
 
@@ -131,7 +135,7 @@ describe('Code fixes', () => {
   it('should only return a spelling code fix when the range includes the misspelled property', () => {
     const server = createServer()
     openMockFile(server, fixtureFileName, 'const q = css`boarder: 1px solid black;`')
-    server.sendCommand('getCodeFixes', {
+    const outsidePropertyRequest = server.sendCommand('getCodeFixes', {
       file: fixtureFileName,
       startLine: 1,
       startOffset: 14,
@@ -140,7 +144,7 @@ describe('Code fixes', () => {
       errorCodes: [9999],
     })
 
-    server.sendCommand('getCodeFixes', {
+    const insidePropertyRequest = server.sendCommand('getCodeFixes', {
       file: fixtureFileName,
       startLine: 1,
       startOffset: 22,
@@ -150,15 +154,13 @@ describe('Code fixes', () => {
     })
 
     return server.close().then(() => {
-      const responses = getResponsesOfType('getCodeFixes', server)
-      assert.strictEqual(responses.length, 2)
       {
-        const response = responses[0]
+        const response = getResponseForRequest('getCodeFixes', outsidePropertyRequest, server)
         assert.isTrue(response.success)
         assert.strictEqual(response.body.length, 0)
       }
       {
-        const response = responses[1]
+        const response = getResponseForRequest('getCodeFixes', insidePropertyRequest, server)
         assert.isTrue(response.success)
         assert.strictEqual(response.body.length, 0)
       }

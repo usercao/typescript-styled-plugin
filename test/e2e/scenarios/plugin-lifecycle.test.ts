@@ -2,12 +2,16 @@ import { assert, describe, it } from 'vitest'
 
 import { getFixtureFilePath } from '../fixture-paths'
 import createServer from '../tsserver-fixture'
-import { getFirstResponseOfType, openMockFile } from './tsserver-test-helpers'
+import {
+  getFirstResponseOfType,
+  getResponseForRequest,
+  openMockFile,
+} from './tsserver-test-helpers'
 
 const cssDiagnosticCode = 9999
 
 function getCompletions(server: ReturnType<typeof createServer>, file: string, offset: number) {
-  server.sendCommand('completions', { file, line: 1, offset })
+  return server.sendCommand('completions', { file, line: 1, offset })
 }
 
 describe('Plugin lifecycle', () => {
@@ -40,24 +44,26 @@ describe('Plugin lifecycle', () => {
     const server = createServer()
     const file = getFixtureFilePath()
     openMockFile(server, file, 'const q = sty`color:`')
-    getCompletions(server, file, 21)
+    const defaultTagsRequest = getCompletions(server, file, 21)
     server.sendCommand('configurePlugin', {
       pluginName: '@styled/typescript-styled-plugin',
       configuration: { tags: ['sty'] },
     })
-    getCompletions(server, file, 21)
+    const customTagsRequest = getCompletions(server, file, 21)
     server.sendCommand('configurePlugin', {
       pluginName: '@styled/typescript-styled-plugin',
       configuration: {},
     })
-    getCompletions(server, file, 21)
+    const resetTagsRequest = getCompletions(server, file, 21)
 
     await server.close()
-    const completions = server.getResponsesOfType('completions')
-    assert.strictEqual(completions.length, 3)
-    assert.isFalse(completions[0].success)
-    assert.isTrue(completions[1].body.some((item) => item.name === 'aliceblue'))
-    assert.isFalse(completions[2].success)
+    assert.isFalse(getResponseForRequest('completions', defaultTagsRequest, server).success)
+    assert.isTrue(
+      getResponseForRequest('completions', customTagsRequest, server).body.some(
+        (item) => item.name === 'aliceblue',
+      ),
+    )
+    assert.isFalse(getResponseForRequest('completions', resetTagsRequest, server).success)
   })
 
   it('should suppress CSS diagnostics when validation is disabled', async () => {
@@ -80,20 +86,21 @@ describe('Plugin lifecycle', () => {
     const server = createServer()
     const file = getFixtureFilePath()
     openMockFile(server, file, 'const q = css`boarder: 1px solid black;`')
+    const diagnosticRequests: number[] = []
     for (const unknownProperties of ['ignore', 'warning', 'error'] as const) {
       server.sendCommand('configurePlugin', {
         pluginName: '@styled/typescript-styled-plugin',
         configuration: { lint: { unknownProperties } },
       })
-      server.sendCommand('semanticDiagnosticsSync', { file })
+      diagnosticRequests.push(server.sendCommand('semanticDiagnosticsSync', { file }))
     }
 
     await server.close()
-    const diagnostics = server
-      .getResponsesOfType('semanticDiagnosticsSync')
-      .map((response) =>
-        response.body.filter((diagnostic) => diagnostic.code === cssDiagnosticCode),
-      )
+    const diagnostics = diagnosticRequests.map((requestSequence) =>
+      getResponseForRequest('semanticDiagnosticsSync', requestSequence, server).body.filter(
+        (diagnostic) => diagnostic.code === cssDiagnosticCode,
+      ),
+    )
     assert.deepEqual(diagnostics[0], [])
     assert.strictEqual(diagnostics[1]?.[0]?.category, 'warning')
     assert.strictEqual(diagnostics[2]?.[0]?.category, 'error')
@@ -107,21 +114,26 @@ describe('Plugin lifecycle', () => {
       pluginName: '@styled/typescript-styled-plugin',
       configuration: { lint: { validProperties: ['brand-tone'] } },
     })
-    server.sendCommand('semanticDiagnosticsSync', { file })
+    const customPropertiesRequest = server.sendCommand('semanticDiagnosticsSync', { file })
     server.sendCommand('configurePlugin', {
       pluginName: '@styled/typescript-styled-plugin',
       configuration: {},
     })
-    server.sendCommand('semanticDiagnosticsSync', { file })
+    const resetPropertiesRequest = server.sendCommand('semanticDiagnosticsSync', { file })
 
     await server.close()
-    const diagnostics = server
-      .getResponsesOfType('semanticDiagnosticsSync')
-      .map((response) =>
-        response.body.filter((diagnostic) => diagnostic.code === cssDiagnosticCode),
-      )
-    assert.deepEqual(diagnostics[0], [])
-    assert.strictEqual(diagnostics[1]?.[0]?.text, "Unknown property: 'brand-tone'")
+    const customDiagnostics = getResponseForRequest(
+      'semanticDiagnosticsSync',
+      customPropertiesRequest,
+      server,
+    ).body.filter((diagnostic) => diagnostic.code === cssDiagnosticCode)
+    const resetDiagnostics = getResponseForRequest(
+      'semanticDiagnosticsSync',
+      resetPropertiesRequest,
+      server,
+    ).body.filter((diagnostic) => diagnostic.code === cssDiagnosticCode)
+    assert.deepEqual(customDiagnostics, [])
+    assert.strictEqual(resetDiagnostics[0]?.text, "Unknown property: 'brand-tone'")
   })
 
   it('should leave unsupported TypeScript hosts functional without CSS diagnostics', async () => {

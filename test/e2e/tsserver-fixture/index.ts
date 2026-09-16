@@ -7,6 +7,7 @@ import { e2eRoot } from '../fixture-paths'
 import { TSServerMessageReader } from './message-reader'
 
 const require = createRequire(import.meta.url)
+const closeTimeoutMs = 5_000
 
 export interface TSServerResponseMap {
   completionEntryDetails: TSServerResponse<
@@ -104,6 +105,7 @@ export interface TSServerOptions {
 }
 
 export class TSServer {
+  private closePromise: Promise<void> | undefined
   private readonly exitPromise: Promise<void>
   private isClosed = false
   private readonly pendingResponses = new Set<number>()
@@ -173,7 +175,7 @@ export class TSServer {
       }
     })
 
-    this.server = { stdin, stdout }
+    this.server = { kill: server.kill.bind(server), stdin, stdout }
   }
 
   send(command: { command: string; arguments: unknown }, responseExpected: boolean) {
@@ -186,10 +188,11 @@ export class TSServer {
     }
     const req = JSON.stringify({ seq, type: 'request', ...command }) + '\n'
     this.server.stdin.write(req)
+    return seq
   }
 
   sendCommand(name: string, args: unknown) {
-    this.send({ command: name, arguments: args }, true)
+    return this.send({ command: name, arguments: args }, true)
   }
 
   close() {
@@ -199,7 +202,31 @@ export class TSServer {
         this.shutdown()
       }
     }
-    return this.exitPromise
+    this.closePromise ??= new Promise<void>((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        const pendingResponses = [...this.pendingResponses].sort((left, right) => left - right)
+        this.server.kill('SIGKILL')
+        reject(
+          new Error(
+            pendingResponses.length > 0
+              ? `Timed out waiting for tsserver responses to requests: ${pendingResponses.join(', ')}`
+              : 'Timed out waiting for tsserver to exit.',
+          ),
+        )
+      }, closeTimeoutMs)
+
+      this.exitPromise.then(
+        () => {
+          clearTimeout(timeout)
+          resolve()
+        },
+        (reason: unknown) => {
+          clearTimeout(timeout)
+          reject(reason)
+        },
+      )
+    })
+    return this.closePromise
   }
 
   private shutdown() {
@@ -228,8 +255,18 @@ export class TSServer {
   public getResponsesOfType<Command extends keyof TSServerResponseMap>(
     command: Command,
   ): TSServerResponseMap[Command][] {
-    return this.responses.filter(
-      (response): response is TSServerResponseMap[Command] => response.command === command,
+    return this.responses
+      .filter((response): response is TSServerResponseMap[Command] => response.command === command)
+      .sort((left, right) => left.request_seq - right.request_seq)
+  }
+
+  public getResponseForRequest<Command extends keyof TSServerResponseMap>(
+    command: Command,
+    requestSequence: number,
+  ): TSServerResponseMap[Command] | undefined {
+    return this.responses.find(
+      (response): response is TSServerResponseMap[Command] =>
+        response.command === command && response.request_seq === requestSequence,
     )
   }
 }

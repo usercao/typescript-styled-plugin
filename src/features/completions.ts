@@ -44,7 +44,17 @@ export class CompletionsFeature {
     context: TemplateContext,
     position: ts.LineAndCharacter,
   ): ts.WithMetadata<ts.CompletionInfo> {
-    const { items, document, wrapper } = this.getCompletionItems(context, position)
+    const result = this.getCompletionItems(context, position)
+    if (!result) {
+      return {
+        metadata: { isIncomplete: false },
+        isGlobalCompletion: false,
+        isMemberCompletion: false,
+        isNewIdentifierLocation: false,
+        entries: [],
+      }
+    }
+    const { items, document, wrapper } = result
     return translateCompletionItemsToCompletionInfo(this.typescript, items, document, wrapper)
   }
 
@@ -53,7 +63,7 @@ export class CompletionsFeature {
     position: ts.LineAndCharacter,
     name: string,
   ): ts.CompletionEntryDetails {
-    const item = this.getCompletionItems(context, position).items.items.find(
+    const item = this.getCompletionItems(context, position)?.items.items.find(
       (candidate) => candidate.label === name,
     )
     if (!item) {
@@ -72,7 +82,11 @@ export class CompletionsFeature {
   private getCompletionItems(
     context: TemplateContext,
     position: ts.LineAndCharacter,
-  ): CompletionResult {
+  ): CompletionResult | undefined {
+    if (context.text.length === 0) {
+      return undefined
+    }
+
     const wrapper = this.virtualDocumentFactory.getVirtualDocumentWrapper(context)
     const cached = this.cache.getCached(context, position, wrapper)
     if (cached) {
@@ -80,17 +94,8 @@ export class CompletionsFeature {
     }
 
     const completions: vscode.CompletionList = { isIncomplete: false, items: [] }
-    if (context.node.getText() === '``') {
-      return {
-        items: completions,
-        document: this.virtualDocumentSessionProvider.getDocument(context),
-        wrapper,
-      }
-    }
-
     const { document, stylesheet } = this.virtualDocumentSessionProvider.getParsedDocument(context)
     const virtualPosition = this.virtualDocumentFactory.toVirtualDocPosition(position)
-    this.cssLanguageService.setCompletionParticipants([])
     const configuration = this.getConfiguration()
     const emmetResults =
       this.emmetCompletionProvider.doComplete(document, virtualPosition, configuration.emmet) ||
@@ -172,14 +177,22 @@ function translateCompletionItemsToCompletionInfo(
   document: TextDocument,
   wrapper: string,
 ): ts.WithMetadata<ts.CompletionInfo> {
+  const templateStart = wrapper.length
+  const templateEnd = document.getText().length - '\n}'.length
+  const entries: ts.CompletionEntry[] = []
+  for (const item of items.items) {
+    const entry = translateCompletionEntry(typescript, item, document, templateStart, templateEnd)
+    if (entry) {
+      entries.push(entry)
+    }
+  }
+
   return {
     metadata: { isIncomplete: items.isIncomplete },
     isGlobalCompletion: false,
     isMemberCompletion: false,
     isNewIdentifierLocation: false,
-    entries: items.items
-      .map((item) => translateCompletionEntry(typescript, item, document, wrapper))
-      .filter((entry) => entry !== undefined),
+    entries,
   }
 }
 
@@ -203,14 +216,13 @@ function translateCompletionEntry(
   typescript: typeof ts,
   item: vscode.CompletionItem,
   document: TextDocument,
-  wrapper: string,
+  templateStart: number,
+  templateEnd: number,
 ): ts.CompletionEntry | undefined {
   const textEdit = item.textEdit
   const range = textEdit && 'range' in textEdit ? textEdit.range : undefined
   const start = range ? document.offsetAt(range.start) : 0
   const end = range ? document.offsetAt(range.end) : 0
-  const templateStart = wrapper.length
-  const templateEnd = document.getText().length - '\n}'.length
   if (range && (start < templateStart || end < start || end > templateEnd)) {
     return undefined
   }

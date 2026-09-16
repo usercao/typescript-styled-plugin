@@ -128,8 +128,10 @@ describe('StyledTemplateLanguageService', () => {
     )
 
     service.getCompletionsAtPosition(createContext('color:'), { line: 0, character: 6 })
+    service.getCompletionsAtPosition(createContext('display:'), { line: 0, character: 8 })
     manager.updateFromPluginConfig({ tags: ['sty'] })
 
+    assert.strictEqual(factory.completionRequests, 4)
     assert.strictEqual(factory.cssConfigurations.length, 2)
     assert.strictEqual(factory.scssConfigurations.length, 2)
     assert.deepEqual(factory.cssConfigurations[1]?.tags, ['sty'])
@@ -165,6 +167,43 @@ describe('StyledTemplateLanguageService', () => {
     assert.strictEqual(createVirtualDocument.mock.calls.length, 3)
     assert.strictEqual(factory.parsedDocuments.length, 3)
     assert.match(factory.parsedDocuments[2]?.getText() ?? '', /^@keyframes/)
+  })
+
+  it('should skip language services for empty interactive requests', () => {
+    const factory = createFakeLanguageServiceFactory()
+    const virtualDocumentProvider = new StyledVirtualDocumentProvider(ts)
+    const createVirtualDocument = vi.spyOn(virtualDocumentProvider, 'createVirtualDocument')
+    const service = new StyledTemplateLanguageService(
+      ts,
+      new PluginConfigurationManager(),
+      virtualDocumentProvider,
+      factory,
+    )
+    const context = createContext('')
+
+    assert.isEmpty(service.getCompletionsAtPosition(context, { line: 0, character: 0 }).entries)
+    assert.isUndefined(service.getQuickInfoAtPosition(context, { line: 0, character: 0 }))
+    assert.strictEqual(createVirtualDocument.mock.calls.length, 0)
+    assert.strictEqual(factory.parsedDocuments.length, 0)
+    assert.strictEqual(factory.completionRequests, 0)
+    assert.strictEqual(factory.hoverRequests, 0)
+  })
+
+  it('should keep interactive requests isolated from diagnostics and code actions', () => {
+    const factory = createFakeLanguageServiceFactory()
+    const service = new StyledTemplateLanguageService(
+      ts,
+      new PluginConfigurationManager(),
+      new StyledVirtualDocumentProvider(ts),
+      factory,
+    )
+    const context = createContext('color:')
+
+    service.getCompletionsAtPosition(context, context.toPosition(context.text.length))
+    service.getQuickInfoAtPosition(context, context.toPosition(1))
+
+    assert.strictEqual(factory.validationRequests, 0)
+    assert.strictEqual(factory.codeActionRequests, 0)
   })
 })
 
@@ -202,18 +241,26 @@ function createFakeLanguageServiceFactory(
   cssConfigurations: StyledPluginConfiguration[]
   scssConfigurations: StyledPluginConfiguration[]
   parsedDocuments: TextDocument[]
+  readonly completionRequests: number
+  readonly hoverRequests: number
+  readonly validationRequests: number
+  readonly codeActionRequests: number
 } {
   const cssConfigurations: StyledPluginConfiguration[] = []
   const scssConfigurations: StyledPluginConfiguration[] = []
   const parsedDocuments: TextDocument[] = []
+  let completionRequests = 0
+  let hoverRequests = 0
+  let validationRequests = 0
+  let codeActionRequests = 0
   const cssLanguageService: CssLanguageService = {
     configure(configuration) {
       if (configuration) {
         cssConfigurations.push(configuration as StyledPluginConfiguration)
       }
     },
-    setCompletionParticipants() {},
     doComplete(document) {
+      completionRequests++
       return {
         isIncomplete: false,
         items: typeof completionItems === 'function' ? completionItems(document) : completionItems,
@@ -231,15 +278,19 @@ function createFakeLanguageServiceFactory(
       return {} as ReturnType<ScssLanguageService['parseStylesheet']>
     },
     doComplete() {
+      completionRequests++
       return { isIncomplete: false, items: [] }
     },
     doHover() {
+      hoverRequests++
       return null
     },
     doValidation() {
+      validationRequests++
       return []
     },
     doCodeActions() {
+      codeActionRequests++
       return []
     },
     getFoldingRanges() {
@@ -251,6 +302,18 @@ function createFakeLanguageServiceFactory(
     cssConfigurations,
     scssConfigurations,
     parsedDocuments,
+    get completionRequests() {
+      return completionRequests
+    },
+    get hoverRequests() {
+      return hoverRequests
+    },
+    get validationRequests() {
+      return validationRequests
+    },
+    get codeActionRequests() {
+      return codeActionRequests
+    },
     createCssLanguageService() {
       return cssLanguageService
     },

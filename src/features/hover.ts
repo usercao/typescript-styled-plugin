@@ -18,6 +18,10 @@ export class HoverFeature {
     context: TemplateContext,
     position: ts.LineAndCharacter,
   ): ts.QuickInfo | undefined {
+    if (context.text.length === 0) {
+      return undefined
+    }
+
     const { document, stylesheet } = this.virtualDocumentSessionProvider.getParsedDocument(context)
     const virtualPosition = this.virtualDocumentFactory.toVirtualDocPosition(position)
     const hover = this.scssLanguageService.doHover(document, virtualPosition, stylesheet)

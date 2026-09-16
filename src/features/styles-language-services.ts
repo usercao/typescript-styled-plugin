@@ -5,10 +5,7 @@ import type { LanguageService } from 'vscode-css-languageservice'
 import type { TextDocument } from 'vscode-languageserver-textdocument'
 import * as vscode from 'vscode-languageserver-types'
 
-export type CssLanguageService = Pick<
-  LanguageService,
-  'configure' | 'setCompletionParticipants' | 'doComplete'
->
+export type CssLanguageService = Pick<LanguageService, 'configure' | 'doComplete'>
 
 export type ScssLanguageService = Pick<
   LanguageService,

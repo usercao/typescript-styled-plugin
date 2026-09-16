@@ -15,7 +15,10 @@ import {
   ScssLanguageService,
 } from '../../src/features/styles-language-services'
 import { StyledTemplateLanguageService } from '../../src/template-language-service'
-import { StyledVirtualDocumentProvider } from '../../src/virtual-document/styled-virtual-document-provider'
+import {
+  StyledVirtualDocumentProvider,
+  VirtualDocumentProvider,
+} from '../../src/virtual-document/styled-virtual-document-provider'
 
 describe('StyledTemplateLanguageService', () => {
   it('should convert CSS completion items to TypeScript completion entries', () => {
@@ -69,6 +72,37 @@ describe('StyledTemplateLanguageService', () => {
 
     assert.isDefined(end)
     assert.deepEqual(end.replacementSpan, { start: 6, length: 0 })
+  })
+
+  it('should derive completion boundaries from a custom virtual document provider', () => {
+    const context = createContext('color:')
+    const providerWithoutTrailer = createCustomVirtualDocumentProvider('custom{', '')
+    const providerWithTrailer = createCustomVirtualDocumentProvider('custom{', '<trailer>')
+    const completionItems = (document: TextDocument) => [
+      createCompletionItem('end', {
+        start: document.positionAt('custom{'.length + context.text.length),
+        end: document.positionAt('custom{'.length + context.text.length),
+      }),
+      createCompletionItem('trailer', {
+        start: document.positionAt('custom{'.length + context.text.length + 1),
+        end: document.positionAt('custom{'.length + context.text.length + 2),
+      }),
+    ]
+
+    const completionAtEnd = createServiceWithCompletionItems(
+      completionItems,
+      providerWithoutTrailer,
+    ).getCompletionsAtPosition(context, context.toPosition(context.text.length))
+    const completionWithTrailer = createServiceWithCompletionItems(
+      completionItems,
+      providerWithTrailer,
+    ).getCompletionsAtPosition(context, context.toPosition(context.text.length))
+
+    assert.deepEqual(
+      completionAtEnd.entries.find((entry) => entry.name === 'end')?.replacementSpan,
+      { start: context.text.length, length: 0 },
+    )
+    assert.isUndefined(completionWithTrailer.entries.find((entry) => entry.name === 'trailer'))
   })
 
   it('should omit the replacement span when a completion has no text edit', () => {
@@ -383,13 +417,45 @@ function createService() {
 
 function createServiceWithCompletionItems(
   completionItems: vscode.CompletionItem[] | ((document: TextDocument) => vscode.CompletionItem[]),
+  virtualDocumentProvider: VirtualDocumentProvider = new StyledVirtualDocumentProvider(ts),
 ) {
   return new StyledTemplateLanguageService(
     ts,
     new PluginConfigurationManager(),
-    new StyledVirtualDocumentProvider(ts),
+    virtualDocumentProvider,
     createFakeLanguageServiceFactory(completionItems),
   )
+}
+
+function createCustomVirtualDocumentProvider(
+  prefix: string,
+  suffix: string,
+): VirtualDocumentProvider {
+  return {
+    createVirtualDocument(context) {
+      return TextDocument.create(
+        'untitled://custom.scss',
+        'scss',
+        1,
+        `${prefix}${context.text}${suffix}`,
+      )
+    },
+    toVirtualDocPosition(position) {
+      return { line: position.line, character: position.character + prefix.length }
+    },
+    fromVirtualDocPosition(position) {
+      return { line: position.line, character: position.character - prefix.length }
+    },
+    toVirtualDocOffset(offset) {
+      return offset + prefix.length
+    },
+    fromVirtualDocOffset(offset) {
+      return offset - prefix.length
+    },
+    getVirtualDocumentWrapper() {
+      return prefix
+    },
+  }
 }
 
 function createServiceWithLanguageServiceResponses(responses: FakeLanguageServiceResponses) {

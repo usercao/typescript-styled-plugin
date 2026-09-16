@@ -54,8 +54,14 @@ export class CompletionsFeature {
         entries: [],
       }
     }
-    const { items, document, wrapper } = result
-    return translateCompletionItemsToCompletionInfo(this.typescript, items, document, wrapper)
+    const { items, document } = result
+    return translateCompletionItemsToCompletionInfo(
+      this.typescript,
+      this.virtualDocumentFactory,
+      context,
+      items,
+      document,
+    )
   }
 
   public getCompletionEntryDetails(
@@ -173,15 +179,24 @@ function filterScssCompletionItems(items: vscode.CompletionItem[]): vscode.Compl
 
 function translateCompletionItemsToCompletionInfo(
   typescript: typeof ts,
+  virtualDocumentProvider: VirtualDocumentProvider,
+  context: TemplateContext,
   items: vscode.CompletionList,
   document: TextDocument,
-  wrapper: string,
 ): ts.WithMetadata<ts.CompletionInfo> {
-  const templateStart = wrapper.length
-  const templateEnd = document.getText().length - '\n}'.length
+  const templateStart = virtualDocumentProvider.toVirtualDocOffset(0, context)
+  const templateEnd = virtualDocumentProvider.toVirtualDocOffset(context.text.length, context)
   const entries: ts.CompletionEntry[] = []
   for (const item of items.items) {
-    const entry = translateCompletionEntry(typescript, item, document, templateStart, templateEnd)
+    const entry = translateCompletionEntry(
+      typescript,
+      virtualDocumentProvider,
+      context,
+      item,
+      document,
+      templateStart,
+      templateEnd,
+    )
     if (entry) {
       entries.push(entry)
     }
@@ -214,6 +229,8 @@ function translateCompletionItemsToCompletionEntryDetails(
 
 function translateCompletionEntry(
   typescript: typeof ts,
+  virtualDocumentProvider: VirtualDocumentProvider,
+  context: TemplateContext,
   item: vscode.CompletionItem,
   document: TextDocument,
   templateStart: number,
@@ -246,9 +263,11 @@ function translateCompletionEntry(
     entry.filterText = item.filterText
   }
   if (range) {
+    const sourceStart = virtualDocumentProvider.fromVirtualDocOffset(start, context)
+    const sourceEnd = virtualDocumentProvider.fromVirtualDocOffset(end, context)
     entry.replacementSpan = {
-      start: start - templateStart,
-      length: end - start,
+      start: sourceStart,
+      length: sourceEnd - sourceStart,
     }
   }
   return entry

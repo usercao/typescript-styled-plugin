@@ -18,9 +18,6 @@
     "source.organizeImports": "never"
   },
 
-  // Use the workspace TypeScript version
-  "js/ts.tsdk.path": "node_modules/typescript/lib",
-
   // Markdown uses trailing spaces for explicit line breaks
   "[markdown]": {
     "files.trimTrailingWhitespace": false

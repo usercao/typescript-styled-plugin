@@ -5,7 +5,8 @@ This document describes the local workflow for maintaining
 
 ## Requirements
 
-- Node.js 22.12.0 or newer.
+- Node.js 24.21.0 for development and builds, as declared in `.github/.node-version`.
+- Node.js 22.12.0 or newer in the tsserver host at runtime.
 - Corepack and Yarn 4.18.0, as declared in `package.json`.
 - Git for contributing changes.
 
@@ -36,6 +37,7 @@ Do not install dependencies inside individual fixture directories.
 | `yarn typecheck`        | Type-check source and E2E test code without emitting files.                                  |
 | `yarn test:unit`        | Run unit tests in `test/unit`.                                                               |
 | `yarn test:e2e`         | Rebuild and run the Node tsserver scenarios in `test/e2e/scenarios`.                         |
+| `yarn test:e2e:run`     | Run E2E scenarios against the existing `lib/` build without rebuilding it.                   |
 | `yarn test:e2e:current` | Run E2E scenarios against the `typescript-current` workspace alias.                          |
 | `yarn test:e2e:minimum` | Run E2E scenarios against the minimum supported TypeScript workspace alias.                  |
 | `yarn test:package-api` | Verify that the built public API can be consumed by TypeScript.                              |
@@ -108,11 +110,13 @@ without a process boundary. Add or update a tsserver scenario when the change
 affects plugin discovery, tsserver protocol behavior, source-file handling, or
 the interaction between the plugin and a real TypeScript host.
 
-CI verifies the Node 22.12 minimum with TypeScript 6.0.2 and the current
-Node/TypeScript combination. This does not establish compatibility with a specific editor. Before
-claiming support for an additional host, verify its TypeScript and Node versions
-meet the package requirements, that it supports synchronous `require(ESM)`, and
-that it can load the plugin through the normal `plugins` configuration path.
+CI builds the package with Node 24.21.0, then verifies the resulting artifact
+with Node 22.12 and TypeScript 6.0.2 as well as the current Node/TypeScript
+combination. This does not establish compatibility with a specific editor.
+Before claiming support for an additional host, verify its TypeScript and Node
+versions meet the package requirements, that it supports synchronous
+`require(ESM)`, and that it can load the plugin through the normal `plugins`
+configuration path.
 
 ## Packaging and pull requests
 

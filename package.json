@@ -52,9 +52,10 @@
     "lint": "oxlint .",
     "lint:fix": "oxlint --fix .",
     "test": "yarn test:unit && yarn test:e2e",
-    "test:e2e": "yarn compile && vitest run test/e2e/scenarios --configLoader runner",
+    "test:e2e": "yarn compile && yarn test:e2e:run",
     "test:e2e:current": "TSSERVER_TYPESCRIPT_PACKAGE=typescript-current yarn test:e2e",
     "test:e2e:minimum": "TSSERVER_TYPESCRIPT_PACKAGE=typescript-minimum yarn test:e2e",
+    "test:e2e:run": "vitest run test/e2e/scenarios --configLoader runner",
     "test:package-api": "yarn compile && tsc --noEmit -p test/package-api && node --experimental-strip-types test/package-api/runtime.ts",
     "test:unit": "vitest run test/unit --configLoader runner",
     "typecheck": "tsc --noEmit -p . && tsc --noEmit -p test/e2e",
@@ -76,7 +77,7 @@
     "tsdown": "^0.23.0",
     "typescript": "~6.0.3",
     "vite": "^8.3.0",
-    "vitest": "^5.0.0"
+    "vitest": "^5.0.1"
   },
   "engines": {
     "node": ">=22.12.0"

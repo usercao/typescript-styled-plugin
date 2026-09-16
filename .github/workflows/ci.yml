@@ -17,7 +17,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v5
         with:
-          node-version: 24.20.0
+          node-version-file: .github/.node-version
           cache: yarn
       - run: corepack enable
       - run: yarn install --immutable
@@ -34,7 +34,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v5
         with:
-          node-version: 24.20.0
+          node-version-file: .github/.node-version
           cache: yarn
       - run: corepack enable
       - run: yarn install --immutable
@@ -46,6 +46,12 @@ jobs:
         run: yarn test:package-api
       - name: Package contents
         run: npm pack --dry-run
+      - name: Upload build output
+        uses: actions/upload-artifact@v4
+        with:
+          name: lib
+          path: lib
+          if-no-files-found: error
   unit:
     name: Unit Tests
     runs-on: ubuntu-latest
@@ -55,7 +61,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v5
         with:
-          node-version: 24.20.0
+          node-version-file: .github/.node-version
           cache: yarn
       - run: corepack enable
       - run: yarn install --immutable
@@ -65,6 +71,7 @@ jobs:
   e2e:
     name: E2E (${{ matrix.name }})
     runs-on: ubuntu-latest
+    needs: compile
     strategy:
       fail-fast: false
       matrix:
@@ -76,7 +83,7 @@ jobs:
             node-version: 22.12.0
             typescript-package: typescript-current
           - name: Node 24 / TypeScript current
-            node-version: 24.20.0
+            node-version: 24.21.0
             typescript-package: typescript-current
     steps:
       - name: Checkout
@@ -88,7 +95,12 @@ jobs:
           cache: yarn
       - run: corepack enable
       - run: yarn install --immutable
+      - name: Download build output
+        uses: actions/download-artifact@v5
+        with:
+          name: lib
+          path: lib
       - name: Run tsserver scenarios
-        run: yarn test:e2e
+        run: yarn test:e2e:run
         env:
           TSSERVER_TYPESCRIPT_PACKAGE: ${{ matrix.typescript-package }}

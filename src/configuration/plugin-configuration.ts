@@ -65,21 +65,22 @@ export class PluginConfigurationManager {
     return this.configuration
   }
 
-  public updateFromPluginConfig(config: Partial<StyledPluginConfiguration>) {
-    const tags = isStringArray(config.tags)
-      ? config.tags
+  public updateFromPluginConfig(config: unknown) {
+    const normalizedConfig = toRecord(config)
+    const tags = isStringArray(normalizedConfig.tags)
+      ? normalizedConfig.tags
       : PluginConfigurationManager.defaultConfiguration.tags
     this.configuration = {
       tags,
       validate:
-        typeof config.validate === 'boolean'
-          ? config.validate
+        typeof normalizedConfig.validate === 'boolean'
+          ? normalizedConfig.validate
           : PluginConfigurationManager.defaultConfiguration.validate,
       lint: {
         ...PluginConfigurationManager.defaultConfiguration.lint,
-        ...toRecord(config.lint),
+        ...toRecord(normalizedConfig.lint),
       },
-      emmet: toRecord(config.emmet) as StyledPluginEmmetConfiguration,
+      emmet: toRecord(normalizedConfig.emmet) as StyledPluginEmmetConfiguration,
     }
 
     for (const listener of this.updateListeners) {

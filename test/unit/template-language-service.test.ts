@@ -71,6 +71,41 @@ describe('StyledTemplateLanguageService', () => {
     assert.deepEqual(end.replacementSpan, { start: 6, length: 0 })
   })
 
+  it('should omit the replacement span when a completion has no text edit', () => {
+    const context = createContext('color:')
+    const completion = createServiceWithCompletionItems([
+      { label: 'current-position' },
+    ]).getCompletionsAtPosition(context, context.toPosition(context.text.length))
+    const entry = completion.entries.find((candidate) => candidate.name === 'current-position')
+
+    assert.isDefined(entry)
+    assert.isUndefined(entry.replacementSpan)
+  })
+
+  it('should map the replace range from an insert-replace completion edit', () => {
+    const context = createContext('color: re')
+    const completion = createServiceWithCompletionItems([
+      {
+        label: 'red',
+        textEdit: {
+          newText: 'red',
+          insert: {
+            start: { line: 1, character: 8 },
+            end: { line: 1, character: 9 },
+          },
+          replace: {
+            start: { line: 1, character: 7 },
+            end: { line: 1, character: 9 },
+          },
+        },
+      },
+    ]).getCompletionsAtPosition(context, context.toPosition(context.text.length))
+    const entry = completion.entries.find((candidate) => candidate.name === 'red')
+
+    assert.isDefined(entry)
+    assert.deepEqual(entry.replacementSpan, { start: 7, length: 2 })
+  })
+
   it('should not reuse completions between different virtual document wrappers', () => {
     const service = createServiceWithCompletionItems((document) => [
       { label: document.getText().startsWith('@keyframes') ? 'keyframes' : 'root' },

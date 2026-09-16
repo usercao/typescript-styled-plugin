@@ -220,25 +220,28 @@ function translateCompletionEntry(
   templateEnd: number,
 ): ts.CompletionEntry | undefined {
   const textEdit = item.textEdit
-  const range = textEdit && 'range' in textEdit ? textEdit.range : undefined
+  const range = textEdit && ('range' in textEdit ? textEdit.range : textEdit.replace)
   const start = range ? document.offsetAt(range.start) : 0
   const end = range ? document.offsetAt(range.end) : 0
   if (range && (start < templateStart || end < start || end > templateEnd)) {
     return undefined
   }
 
-  return {
+  const entry: ts.CompletionEntry = {
     name: item.label,
     kind: item.kind
       ? translateCompletionItemKind(typescript, item.kind)
       : typescript.ScriptElementKind.unknown,
     kindModifiers: getKindModifiers(item),
     sortText: item.sortText || item.label,
-    replacementSpan: {
-      start: range ? start - templateStart : 0,
-      length: range ? end - start : 0,
-    },
   }
+  if (range) {
+    entry.replacementSpan = {
+      start: start - templateStart,
+      length: end - start,
+    }
+  }
+  return entry
 }
 
 function translateCompletionItemKind(

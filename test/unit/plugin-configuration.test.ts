@@ -72,6 +72,16 @@ describe('PluginConfigurationManager', () => {
     assert.deepEqual(manager.config.emmet, {})
   })
 
+  it.each([null, undefined])(
+    'should use defaults for an absent top-level configuration',
+    (config) => {
+      const manager = new PluginConfigurationManager()
+      manager.updateFromPluginConfig(config)
+
+      assert.deepEqual(manager.config, new PluginConfigurationManager().config)
+    },
+  )
+
   it('should preserve unknown object settings from runtime configuration', () => {
     const manager = new PluginConfigurationManager()
     const runtimeConfiguration: unknown = {

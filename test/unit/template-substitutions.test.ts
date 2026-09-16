@@ -33,6 +33,14 @@ describe('substituter', () => {
     assert.deepEqual(performSubstitutions('color: ${}'), 'color: xxx')
   })
 
+  it('should preserve length for an empty placeholder used as an entire declaration', () => {
+    const value = '${};'
+    const result = performSubstitutions(value)
+
+    assert.strictEqual(result, 'a:0;')
+    assert.strictEqual(result.length, value.length)
+  })
+
   it('should replace property with fake property when placeholder is used in name (#52)', () => {
     assert.deepEqual(
       performSubstitutions(['width: 1px;', `\${123}: 1px;`, 'color: red;'].join('\n')),

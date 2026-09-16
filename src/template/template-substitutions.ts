@@ -66,7 +66,7 @@ function getSubstitution(context: {
 
   if (replacementCharacter === ' ' && /^\s*;/.test(context.textAfterPlaceholder)) {
     if (/(;|^|\}|\{)[\s|\n]*$/.test(context.textBeforePlaceholder)) {
-      return '$a:0' + result.slice(4)
+      return result.length < 4 ? 'a:0' : '$a:0' + result.slice(4)
     }
     return context.placeholderText.replace(/[^\r\n]/g, 'x')
   }

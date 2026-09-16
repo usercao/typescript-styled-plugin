@@ -9,7 +9,15 @@
     "plugins": [
       {
         "name": "@styled/typescript-styled-plugin",
-        "tags": ["styled", "css", "extend", "injectGlobal", "createGlobalStyle", "keyframes"]
+        "tags": [
+          "styled",
+          "css",
+          "extend",
+          "injectGlobal",
+          "createGlobalStyle",
+          "globalStyle",
+          "keyframes"
+        ]
       }
     ]
   }

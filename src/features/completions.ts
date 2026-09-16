@@ -67,7 +67,8 @@ export class CompletionsFeature {
     context: TemplateContext,
     position: ts.LineAndCharacter,
   ): vscode.CompletionList {
-    const cached = this.cache.getCached(context, position)
+    const wrapper = this.virtualDocumentFactory.getVirtualDocumentWrapper(context)
+    const cached = this.cache.getCached(context, position, wrapper)
     if (cached) {
       return cached
     }
@@ -98,7 +99,7 @@ export class CompletionsFeature {
       completions.items.push(...emmetResults.items)
       completions.isIncomplete = true
     }
-    this.cache.updateCached(context, position, completions)
+    this.cache.updateCached(context, position, wrapper, completions)
     return completions
   }
 }
@@ -107,18 +108,21 @@ class CompletionsCache {
   private cachedFileName?: string
   private cachedPosition?: ts.LineAndCharacter
   private cachedText?: string
+  private cachedWrapper?: string
   private completions?: vscode.CompletionList
 
   public getCached(
     context: TemplateContext,
     position: ts.LineAndCharacter,
+    wrapper: string,
   ): vscode.CompletionList | undefined {
     if (
       this.completions &&
       context.fileName === this.cachedFileName &&
       this.cachedPosition &&
       positionsEqual(position, this.cachedPosition) &&
-      context.text === this.cachedText
+      context.text === this.cachedText &&
+      wrapper === this.cachedWrapper
     ) {
       return this.completions
     }
@@ -128,11 +132,13 @@ class CompletionsCache {
   public updateCached(
     context: TemplateContext,
     position: ts.LineAndCharacter,
+    wrapper: string,
     completions: vscode.CompletionList,
   ) {
     this.cachedFileName = context.fileName
     this.cachedPosition = position
     this.cachedText = context.text
+    this.cachedWrapper = wrapper
     this.completions = completions
   }
 
@@ -140,6 +146,7 @@ class CompletionsCache {
     this.cachedFileName = undefined
     this.cachedPosition = undefined
     this.cachedText = undefined
+    this.cachedWrapper = undefined
     this.completions = undefined
   }
 }

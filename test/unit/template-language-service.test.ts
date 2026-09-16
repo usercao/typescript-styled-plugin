@@ -1,6 +1,7 @@
 import type { TemplateContext } from 'typescript-template-language-service-decorator'
 import * as ts from 'typescript/lib/tsserverlibrary.js'
 import { assert, describe, it } from 'vitest'
+import { TextDocument } from 'vscode-languageserver-textdocument'
 import * as vscode from 'vscode-languageserver-types'
 
 import {
@@ -69,6 +70,32 @@ describe('StyledTemplateLanguageService', () => {
     assert.deepEqual(end.replacementSpan, { start: 6, length: 0 })
   })
 
+  it('should not reuse completions between different virtual document wrappers', () => {
+    const service = createServiceWithCompletionItems((document) => [
+      { label: document.getText().startsWith('@keyframes') ? 'keyframes' : 'root' },
+    ])
+    const cssContext = createContext('color:', 'css')
+    const keyframesContext = createContext('color:', 'keyframes')
+
+    const cssCompletions = service.getCompletionsAtPosition(
+      cssContext,
+      cssContext.toPosition(cssContext.text.length),
+    )
+    const keyframesCompletions = service.getCompletionsAtPosition(
+      keyframesContext,
+      keyframesContext.toPosition(keyframesContext.text.length),
+    )
+
+    assert.deepEqual(
+      cssCompletions.entries.map((entry) => entry.name),
+      ['root'],
+    )
+    assert.deepEqual(
+      keyframesCompletions.entries.map((entry) => entry.name),
+      ['keyframes'],
+    )
+  })
+
   it('should convert CSS hover documentation and ranges to template offsets', () => {
     const context = createContext('color: red;')
     const quickInfo = createService().getQuickInfoAtPosition(context, context.toPosition(1))
@@ -118,7 +145,9 @@ function createService() {
   )
 }
 
-function createServiceWithCompletionItems(completionItems: vscode.CompletionItem[]) {
+function createServiceWithCompletionItems(
+  completionItems: vscode.CompletionItem[] | ((document: TextDocument) => vscode.CompletionItem[]),
+) {
   return new StyledTemplateLanguageService(
     ts,
     new PluginConfigurationManager(),
@@ -135,7 +164,9 @@ function createCompletionItem(label: string, range: vscode.Range): vscode.Comple
 }
 
 function createFakeLanguageServiceFactory(
-  completionItems: vscode.CompletionItem[] = [],
+  completionItems:
+    | vscode.CompletionItem[]
+    | ((document: TextDocument) => vscode.CompletionItem[]) = [],
 ): StylesLanguageServiceFactory & {
   cssConfigurations: StyledPluginConfiguration[]
   scssConfigurations: StyledPluginConfiguration[]
@@ -149,8 +180,11 @@ function createFakeLanguageServiceFactory(
       }
     },
     setCompletionParticipants() {},
-    doComplete() {
-      return { isIncomplete: false, items: completionItems }
+    doComplete(document) {
+      return {
+        isIncomplete: false,
+        items: typeof completionItems === 'function' ? completionItems(document) : completionItems,
+      }
     },
   }
   const scssLanguageService: ScssLanguageService = {
@@ -191,10 +225,10 @@ function createFakeLanguageServiceFactory(
   }
 }
 
-function createContext(text: string): TemplateContext {
+function createContext(text: string, tagName = 'css'): TemplateContext {
   const sourceFile = ts.createSourceFile(
     'fixture.ts',
-    `const styles = css\`${text}\`;`,
+    `const styles = ${tagName}\`${text}\`;`,
     ts.ScriptTarget.Latest,
     true,
   )

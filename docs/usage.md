@@ -47,6 +47,12 @@ By default, the plugin recognizes these tag names:
 styled, css, keyframes, createGlobalStyle, globalStyle, injectGlobal, extend
 ```
 
+Tag matching is based on the configured name at the start or end of the tag
+expression. For example, `styled.keyframes` is recognized as `keyframes` and
+uses keyframe parsing. The plugin does not resolve imports, so aliases such as
+`kf` must be included in `tags` and do not automatically receive keyframe
+parsing.
+
 For example:
 
 ```ts

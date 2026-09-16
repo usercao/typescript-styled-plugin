@@ -57,10 +57,20 @@ export class StyledVirtualDocumentProvider implements VirtualDocumentProvider {
     const parent = context.node.parent
     const tag =
       parent && this.typescript.isTaggedTemplateExpression(parent) ? parent.tag : undefined
-    return tag && this.typescript.isIdentifier(tag) && tag.escapedText === 'keyframes'
+    return getTagName(this.typescript, tag) === 'keyframes'
       ? StyledVirtualDocumentProvider.keyframesWrapper
       : StyledVirtualDocumentProvider.rootWrapper
   }
+}
+
+function getTagName(typescript: typeof ts, tag: ts.Expression | undefined): string | undefined {
+  if (tag && typescript.isIdentifier(tag)) {
+    return tag.text
+  }
+  if (tag && typescript.isPropertyAccessExpression(tag)) {
+    return tag.name.text
+  }
+  return undefined
 }
 
 function positionsEqual(left: ts.LineAndCharacter, right: ts.LineAndCharacter): boolean {

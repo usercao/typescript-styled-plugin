@@ -34,6 +34,26 @@ describe('StyledVirtualDocumentProvider', () => {
     )
   })
 
+  it('should use a keyframes wrapper when the tag ends with keyframes', () => {
+    const context = createContext('styled.keyframes', '0% { opacity: 0; }')
+    const provider = new StyledVirtualDocumentProvider(ts)
+
+    assert.strictEqual(
+      provider.createVirtualDocument(context).getText(),
+      '@keyframes custom {\n0% { opacity: 0; }\n}',
+    )
+  })
+
+  it('should only use the keyframes wrapper for the exact keyframes tag name', () => {
+    const context = createContext('kf', '0% { opacity: 0; }')
+    const provider = new StyledVirtualDocumentProvider(ts)
+
+    assert.strictEqual(
+      provider.createVirtualDocument(context).getText(),
+      ':root{\n0% { opacity: 0; }\n}',
+    )
+  })
+
   it('should only map the template body back from the virtual document', () => {
     const context = createContext('css', 'color: red;')
     const provider = new StyledVirtualDocumentProvider(ts)

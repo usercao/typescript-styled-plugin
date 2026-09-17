@@ -7,6 +7,7 @@ import path from 'node:path'
 const workspaceRoot = path.resolve(import.meta.dirname, '../..')
 const buildOutputDirectory = path.join(workspaceRoot, 'lib')
 const temporaryDirectory = mkdtempSync(path.join(tmpdir(), 'typescript-styled-plugin-'))
+const archiveArgument = process.argv[2]
 const packageDirectory = path.join(
   temporaryDirectory,
   'node_modules',
@@ -15,18 +16,9 @@ const packageDirectory = path.join(
 )
 
 try {
-  rmSync(buildOutputDirectory, { recursive: true, force: true })
-  const packOutput = execFileSync(
-    'npm',
-    ['pack', '--json', '--pack-destination', temporaryDirectory],
-    {
-      cwd: workspaceRoot,
-      encoding: 'utf8',
-    },
-  )
-  const jsonStart = packOutput.lastIndexOf('\n[')
-  const packResult = JSON.parse(packOutput.slice(jsonStart === -1 ? 0 : jsonStart + 1))
-  const archive = path.join(temporaryDirectory, packResult[0].filename)
+  const archive = archiveArgument
+    ? path.resolve(archiveArgument)
+    : packFromCleanOutput(temporaryDirectory)
   mkdirSync(packageDirectory, { recursive: true })
   execFileSync('tar', ['-xzf', archive, '--strip-components=1', '-C', packageDirectory])
 
@@ -57,4 +49,19 @@ if (typeof api.StyledTemplateLanguageService !== 'function' || typeof api.Plugin
   execFileSync(process.execPath, [apiConsumer], { stdio: 'inherit' })
 } finally {
   rmSync(temporaryDirectory, { recursive: true, force: true })
+}
+
+function packFromCleanOutput(packDestination: string): string {
+  rmSync(buildOutputDirectory, { recursive: true, force: true })
+  const packOutput = execFileSync(
+    'npm',
+    ['pack', '--json', '--pack-destination', packDestination],
+    {
+      cwd: workspaceRoot,
+      encoding: 'utf8',
+    },
+  )
+  const jsonStart = packOutput.lastIndexOf('\n[')
+  const packResult = JSON.parse(packOutput.slice(jsonStart === -1 ? 0 : jsonStart + 1))
+  return path.join(packDestination, packResult[0].filename)
 }

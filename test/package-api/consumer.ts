@@ -1,5 +1,6 @@
 import {
   PluginConfigurationManager,
+  type ResolvedStyledPluginConfiguration,
   type StyledPluginConfiguration,
   type StyledPluginEmmetConfiguration,
   type StyledPluginLintConfiguration,
@@ -44,6 +45,9 @@ const invalidEmmetConfiguration: StyledPluginEmmetConfiguration = {
 }
 
 const configurationManager = new PluginConfigurationManager()
+const resolvedConfiguration: ResolvedStyledPluginConfiguration = configurationManager.config
+const resolvedTags: ReadonlyArray<string> = resolvedConfiguration.tags
+const resolvedValidate: boolean = resolvedConfiguration.validate
 const templateSettings = getTemplateSettings(configurationManager)
 const templateLanguageService = new StyledTemplateLanguageService(
   ts,
@@ -68,6 +72,9 @@ void typedConfiguration
 void partialConfiguration
 void invalidLintConfiguration
 void invalidEmmetConfiguration
+void resolvedConfiguration
+void resolvedTags
+void resolvedValidate
 void templateSettings
 void templateLanguageService
 void sourcePosition

@@ -5,6 +5,7 @@
 export { StyledTemplateLanguageService } from './template-language-service.ts'
 export { PluginConfigurationManager } from './configuration/plugin-configuration.ts'
 export type {
+  ResolvedStyledPluginConfiguration,
   StyledPluginConfiguration,
   StyledPluginEmmetConfiguration,
   StyledPluginLintConfiguration,

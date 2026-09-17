@@ -45,7 +45,13 @@ jobs:
       - name: Package API and runtime
         run: yarn test:package-api
       - name: Package contents
-        run: npm pack --dry-run
+        run: mkdir -p package-artifact && npm pack --pack-destination package-artifact
+      - name: Upload packed package
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-tarball
+          path: package-artifact/*.tgz
+          if-no-files-found: error
       - name: Upload build output
         uses: actions/upload-artifact@v4
         with:
@@ -79,6 +85,7 @@ jobs:
           - name: Node 22.12 / TypeScript 6.0.2
             node-version: 22.12.0
             typescript-package: typescript-minimum
+            test-package-runtime: true
           - name: Node 22.12 / latest supported TypeScript 6.x
             node-version: 22.12.0
             typescript-package: typescript-current
@@ -100,6 +107,15 @@ jobs:
         with:
           name: lib
           path: lib
+      - name: Download packed package
+        if: matrix.test-package-runtime
+        uses: actions/download-artifact@v5
+        with:
+          name: package-tarball
+          path: package-artifact
+      - name: Test packed package runtime
+        if: matrix.test-package-runtime
+        run: node --experimental-strip-types test/package-api/runtime.ts package-artifact/*.tgz
       - name: Run tsserver scenarios
         run: yarn test:e2e:run
         env:

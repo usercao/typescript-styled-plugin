@@ -8,7 +8,7 @@ import {
   openMockFile,
 } from './tsserver-test-helpers'
 
-const cssDiagnosticCode = 9999
+const pluginSource = 'ts-styled-plugin'
 
 function getCompletions(server: ReturnType<typeof createServer>, file: string, offset: number) {
   return server.sendCommand('completions', { file, line: 1, offset })
@@ -85,7 +85,7 @@ describe('Plugin lifecycle', () => {
     await server.close()
     const cssDiagnostics = [enabledRequest, disabledRequest, resetRequest].map((requestSequence) =>
       getResponseForRequest('semanticDiagnosticsSync', requestSequence, server).body.filter(
-        (diagnostic) => diagnostic.code === cssDiagnosticCode,
+        (diagnostic) => diagnostic.source === pluginSource,
       ),
     )
     assert.lengthOf(cssDiagnostics[0], 1)
@@ -109,7 +109,7 @@ describe('Plugin lifecycle', () => {
     await server.close()
     const diagnostics = diagnosticRequests.map((requestSequence) =>
       getResponseForRequest('semanticDiagnosticsSync', requestSequence, server).body.filter(
-        (diagnostic) => diagnostic.code === cssDiagnosticCode,
+        (diagnostic) => diagnostic.source === pluginSource,
       ),
     )
     assert.deepEqual(diagnostics[0], [])
@@ -133,7 +133,7 @@ describe('Plugin lifecycle', () => {
     await server.close()
     const diagnostics = diagnosticRequests.map((requestSequence) =>
       getResponseForRequest('semanticDiagnosticsSync', requestSequence, server).body.filter(
-        (diagnostic) => diagnostic.code === cssDiagnosticCode,
+        (diagnostic) => diagnostic.source === pluginSource,
       ),
     )
     assert.deepEqual(diagnostics[0], [])
@@ -161,12 +161,12 @@ describe('Plugin lifecycle', () => {
       'semanticDiagnosticsSync',
       customPropertiesRequest,
       server,
-    ).body.filter((diagnostic) => diagnostic.code === cssDiagnosticCode)
+    ).body.filter((diagnostic) => diagnostic.source === pluginSource)
     const resetDiagnostics = getResponseForRequest(
       'semanticDiagnosticsSync',
       resetPropertiesRequest,
       server,
-    ).body.filter((diagnostic) => diagnostic.code === cssDiagnosticCode)
+    ).body.filter((diagnostic) => diagnostic.source === pluginSource)
     assert.deepEqual(customDiagnostics, [])
     assert.strictEqual(resetDiagnostics[0]?.text, "Unknown property: 'brand-tone'")
   })
@@ -182,6 +182,6 @@ describe('Plugin lifecycle', () => {
     await server.close()
     const diagnostics = getFirstResponseOfType('semanticDiagnosticsSync', server)
     assert.isTrue(diagnostics.success)
-    assert.isFalse(diagnostics.body.some((diagnostic) => diagnostic.code === cssDiagnosticCode))
+    assert.isFalse(diagnostics.body.some((diagnostic) => diagnostic.source === pluginSource))
   })
 })

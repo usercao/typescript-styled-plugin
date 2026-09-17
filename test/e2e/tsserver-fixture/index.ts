@@ -74,6 +74,7 @@ interface TSServerDiagnostic {
   category: 'error' | 'warning' | 'suggestion' | 'message'
   code: number
   end: TSServerPosition
+  source?: string
   start: TSServerPosition
   text: string
 }

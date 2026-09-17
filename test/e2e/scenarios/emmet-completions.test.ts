@@ -2,7 +2,11 @@ import { assert, describe, it } from 'vitest'
 
 import { getFixtureFilePath } from '../fixture-paths'
 import createServer from '../tsserver-fixture'
-import { getFirstResponseOfType, openMockFile } from './tsserver-test-helpers'
+import {
+  getFirstResponseOfType,
+  getResponseForRequest,
+  openMockFile,
+} from './tsserver-test-helpers'
 
 const createMockFileForServer = (fileContents: string, project = 'styled-project-fixture') => {
   const server = createServer(project)
@@ -13,15 +17,29 @@ const createMockFileForServer = (fileContents: string, project = 'styled-project
 
 describe('Emmet Completions', () => {
   it('should not return Emmet property completions when disabled', async () => {
+    const source = 'const q = css`color: ; m10-20`'
     const { server, mockFileName } = createMockFileForServer(
-      'const q = css`m10-20`',
+      source,
       'emmet-disabled-project-fixture',
     )
-    server.sendCommand('completions', { file: mockFileName, offset: 21, line: 1 })
+    const cssRequest = server.sendCommand('completions', {
+      file: mockFileName,
+      offset: source.indexOf('color:') + 'color:'.length + 1,
+      line: 1,
+    })
+    const emmetRequest = server.sendCommand('completions', {
+      file: mockFileName,
+      offset: source.indexOf('m10-20') + 'm10-20'.length + 1,
+      line: 1,
+    })
 
     await server.close()
-    const completionsResponse = getFirstResponseOfType('completions', server)
-    assert.isTrue(completionsResponse.body.every((item) => item.name !== 'margin: 10px 20px;'))
+    const cssResponse = getResponseForRequest('completions', cssRequest, server)
+    const emmetResponse = getResponseForRequest('completions', emmetRequest, server)
+    assert.isTrue(cssResponse.success)
+    assert.isTrue(cssResponse.body.some((item) => item.name === 'aliceblue'))
+    assert.isTrue(emmetResponse.success)
+    assert.isFalse(emmetResponse.body.some((item) => item.name === 'margin: 10px 20px;'))
   })
 
   it('should return Emmet property completions for a single-line string', async () => {

@@ -5,23 +5,33 @@ import createServer from '../tsserver-fixture'
 import { getFirstResponseOfType, openMockFile } from './tsserver-test-helpers'
 
 const mockFileName = getFixtureFilePath()
-const cssDiagnosticCode = 9999
+const pluginSource = 'ts-styled-plugin'
 
-const getSemanticDiagnosticsForFile = (fileContents: string) => {
+const getAllSemanticDiagnosticsForFile = (fileContents: string) => {
   const server = createServer()
   openMockFile(server, mockFileName, fileContents)
   server.sendCommand('semanticDiagnosticsSync', { file: mockFileName })
 
-  return server.close().then(() => {
-    const response = getFirstResponseOfType('semanticDiagnosticsSync', server)
-    return {
-      ...response,
-      body: response.body.filter((diagnostic) => diagnostic.code === cssDiagnosticCode),
-    }
-  })
+  return server.close().then(() => getFirstResponseOfType('semanticDiagnosticsSync', server))
+}
+
+const getSemanticDiagnosticsForFile = (fileContents: string) => {
+  return getAllSemanticDiagnosticsForFile(fileContents).then((response) => ({
+    ...response,
+    body: response.body.filter((diagnostic) => diagnostic.source === pluginSource),
+  }))
 }
 
 describe('Errors', () => {
+  it('should return no semantic diagnostics for valid TypeScript and CSS', async () => {
+    const response = await getAllSemanticDiagnosticsForFile(
+      'function css(x: TemplateStringsArray) { return x; }; const q = css`color: red;`',
+    )
+
+    assert.isTrue(response.success)
+    assert.deepEqual(response.body, [])
+  })
+
   it('should return error for unknown property', async () => {
     const errorResponse = await getSemanticDiagnosticsForFile(
       'function css(x: TemplateStringsArray) { return x; }; const q = css`boarder: 1px solid black;`',
@@ -29,6 +39,7 @@ describe('Errors', () => {
     assert.isTrue(errorResponse.success)
     assert.strictEqual(errorResponse.body.length, 1)
     const error = errorResponse.body[0]
+    assert.strictEqual(error.source, pluginSource)
     assert.strictEqual(error.text, "Unknown property: 'boarder'")
     assert.strictEqual(error.start.line, 1)
     assert.strictEqual(error.start.offset, 68)

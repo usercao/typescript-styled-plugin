@@ -36,6 +36,24 @@ describe('StyledTemplateLanguageService', () => {
     assert.deepEqual(aliceblue.replacementSpan, { start: 6, length: 0 })
   })
 
+  it('should return fallback details for an unknown completion entry', () => {
+    const context = createContext('color:')
+    const details = createServiceWithCompletionItems([]).getCompletionEntryDetails(
+      context,
+      context.toPosition(context.text.length),
+      'missing-entry',
+    )
+
+    assert.deepEqual(details, {
+      name: 'missing-entry',
+      kind: ts.ScriptElementKind.unknown,
+      kindModifiers: '',
+      tags: [],
+      displayParts: [{ kind: 'text', text: 'missing-entry' }],
+      documentation: [],
+    })
+  })
+
   it('should omit completion edits that target the virtual document wrapper', () => {
     const context = createContext('color:')
     const completion = createServiceWithCompletionItems([
@@ -215,6 +233,105 @@ describe('StyledTemplateLanguageService', () => {
     assert.match(ts.displayPartsToString(quickInfo.documentation), /Sets the color/i)
   })
 
+  it('should use the request position when hover has no range', () => {
+    const context = createContext('color: red;')
+    const service = createServiceWithLanguageServiceResponses({
+      hover: { contents: { kind: vscode.MarkupKind.Markdown, value: 'color docs' } },
+    })
+
+    const quickInfo = service.getQuickInfoAtPosition(context, context.toPosition(2))
+
+    assert.isDefined(quickInfo)
+    assert.deepEqual(quickInfo?.textSpan, { start: 2, length: 1 })
+    assert.deepEqual(quickInfo?.documentation, [{ kind: 'unknown', text: 'color docs' }])
+  })
+
+  it('should return undefined when the language service has no hover', () => {
+    const context = createContext('color: red;')
+
+    assert.isUndefined(
+      createServiceWithLanguageServiceResponses({}).getQuickInfoAtPosition(
+        context,
+        context.toPosition(2),
+      ),
+    )
+  })
+
+  it('should translate diagnostic codes, severities, and markup messages', () => {
+    const context = createContext('color: red;')
+    const range = {
+      start: { line: 1, character: 0 },
+      end: { line: 1, character: 1 },
+    }
+    const service = createServiceWithLanguageServiceResponses({
+      diagnostics: [
+        {
+          range,
+          message: 'error',
+          code: 'css-error',
+          severity: vscode.DiagnosticSeverity.Error,
+        },
+        { range, message: 'warning', code: 42, severity: vscode.DiagnosticSeverity.Warning },
+        { range, message: 'information', severity: vscode.DiagnosticSeverity.Information },
+        { range, message: 'hint', severity: vscode.DiagnosticSeverity.Hint },
+        {
+          range,
+          message: { kind: vscode.MarkupKind.Markdown, value: 'markup' } as unknown as string,
+        },
+        { range, message: 'default severity' },
+      ],
+    })
+
+    const diagnostics = service.getSemanticDiagnostics(context)
+
+    assert.deepEqual(
+      diagnostics.map(({ category, code, messageText, source }) => ({
+        category,
+        code,
+        messageText,
+        source,
+      })),
+      [
+        {
+          category: ts.DiagnosticCategory.Error,
+          code: 9999,
+          messageText: 'error',
+          source: 'ts-styled-plugin',
+        },
+        {
+          category: ts.DiagnosticCategory.Warning,
+          code: 42,
+          messageText: 'warning',
+          source: 'ts-styled-plugin',
+        },
+        {
+          category: ts.DiagnosticCategory.Message,
+          code: 9999,
+          messageText: 'information',
+          source: 'ts-styled-plugin',
+        },
+        {
+          category: ts.DiagnosticCategory.Message,
+          code: 9999,
+          messageText: 'hint',
+          source: 'ts-styled-plugin',
+        },
+        {
+          category: ts.DiagnosticCategory.Error,
+          code: 9999,
+          messageText: 'markup',
+          source: 'ts-styled-plugin',
+        },
+        {
+          category: ts.DiagnosticCategory.Error,
+          code: 9999,
+          messageText: 'default severity',
+          source: 'ts-styled-plugin',
+        },
+      ],
+    )
+  })
+
   it('should omit diagnostics and hover ranges that cross the virtual document wrapper', () => {
     const context = createContext('color: red;')
     const range = {
@@ -264,6 +381,18 @@ describe('StyledTemplateLanguageService', () => {
     assert.deepEqual(service.getCodeFixesAtPosition(context, 0, context.text.length, [9999]), [])
   })
 
+  it('should ignore unsupported code action commands and commands without edits', () => {
+    const context = createContext('boarder: 1px solid black;')
+    const service = createServiceWithLanguageServiceResponses({
+      codeActions: [
+        { title: 'External action', command: 'external.action' },
+        { title: 'Missing edits', command: '_css.applyCodeAction' },
+      ],
+    })
+
+    assert.deepEqual(service.getCodeFixesAtPosition(context, 0, 7, [9999]), [])
+  })
+
   it('should support the legacy three-argument code fix API', () => {
     const context = createContext('boarder: 1px solid black;')
     const service = createServiceWithLanguageServiceResponses({
@@ -310,6 +439,23 @@ describe('StyledTemplateLanguageService', () => {
     assert.strictEqual(spans.length, 2)
     assert.deepEqual(spans[0]?.textSpan, { start: 0, length: 4 })
     assert.deepEqual(spans[1]?.textSpan, { start: 20, length: 6 })
+  })
+
+  it('should default missing folding range characters to the start of each line', () => {
+    const context = createContext(['a {', '  color: red;', '}'].join('\n'))
+    const service = createServiceWithLanguageServiceResponses({
+      foldingRanges: [{ startLine: 1, endLine: 2 }],
+    })
+
+    assert.deepEqual(service.getOutliningSpans(context), [
+      {
+        autoCollapse: false,
+        kind: ts.OutliningSpanKind.Code,
+        bannerText: '',
+        textSpan: { start: 0, length: 4 },
+        hintSpan: { start: 0, length: 4 },
+      },
+    ])
   })
 
   it('should omit folding ranges that target the virtual document wrapper', () => {

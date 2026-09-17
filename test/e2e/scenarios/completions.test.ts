@@ -49,6 +49,19 @@ describe('Completions', () => {
     })
   })
 
+  it.each([
+    ['line separator', '\u2028'],
+    ['paragraph separator', '\u2029'],
+  ])('should return completions after the Unicode %s', async (_description, separator) => {
+    const server = createServerWithMockFile(`const q = css\`color: red;${separator}color:\``)
+    server.sendCommand('completions', { file: mockFileName, offset: 7, line: 2 })
+
+    await server.close()
+    const completionsResponse = getFirstResponseOfType('completions', server)
+    assert.isTrue(completionsResponse.success)
+    assert.isTrue(completionsResponse.body.some((item) => item.name === 'aliceblue'))
+  })
+
   it('should return property value completions for nested selector', () => {
     const server = createServerWithMockFile('const q = css`position: relative; &:hover { color: }`')
     server.sendCommand('completions', { file: mockFileName, offset: 51, line: 1 })

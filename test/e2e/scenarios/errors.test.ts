@@ -116,6 +116,41 @@ describe('Errors', () => {
     assert.strictEqual(error.end.offset, 8)
   })
 
+  it.each([
+    ['line separator', '\u2028'],
+    ['paragraph separator', '\u2029'],
+  ])('should map diagnostics after the Unicode %s', async (_description, separator) => {
+    const errorResponse = await getSemanticDiagnosticsForFile(
+      `const q = css\`color: red;${separator}boarder: 1px solid black;\``,
+    )
+
+    assert.isTrue(errorResponse.success)
+    assert.strictEqual(errorResponse.body.length, 1)
+    const error = errorResponse.body[0]
+    assert.strictEqual(error.text, "Unknown property: 'boarder'")
+    assert.deepEqual(error.start, { line: 2, offset: 1 })
+    assert.deepEqual(error.end, { line: 2, offset: 8 })
+  })
+
+  it.each([
+    ['line separator', '\u2028'],
+    ['paragraph separator', '\u2029'],
+  ])(
+    'should map diagnostics after an interpolation containing the Unicode %s',
+    async (_description, separator) => {
+      const errorResponse = await getSemanticDiagnosticsForFile(
+        `const value = 'red'; const q = css\`color: \${${separator}value${separator}};${separator}boarder: 1px solid black;\``,
+      )
+
+      assert.isTrue(errorResponse.success)
+      assert.strictEqual(errorResponse.body.length, 1)
+      const error = errorResponse.body[0]
+      assert.strictEqual(error.text, "Unknown property: 'boarder'")
+      assert.deepEqual(error.start, { line: 4, offset: 1 })
+      assert.deepEqual(error.end, { line: 4, offset: 8 })
+    },
+  )
+
   it('should map diagnostics after a multiline interpolation to the source file', async () => {
     const errorResponse = await getSemanticDiagnosticsForFile(
       [

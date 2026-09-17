@@ -186,7 +186,11 @@ export class TSServer {
     if (responseExpected) {
       this.pendingResponses.add(seq)
     }
-    const req = JSON.stringify({ seq, type: 'request', ...command }) + '\n'
+    const req =
+      JSON.stringify({ seq, type: 'request', ...command }).replace(
+        /[\u2028\u2029]/g,
+        (separator) => `\\u${separator.charCodeAt(0).toString(16)}`,
+      ) + '\n'
     this.server.stdin.write(req)
     return seq
   }

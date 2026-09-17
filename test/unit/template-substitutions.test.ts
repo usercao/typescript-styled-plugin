@@ -133,6 +133,20 @@ describe('substituter', () => {
     )
   })
 
+  it.each([
+    ['line separator', '\u2028'],
+    ['paragraph separator', '\u2029'],
+  ])('should preserve the Unicode %s inside a multiline placeholder', (_description, separator) => {
+    const value = `color: \${${separator}  color${separator}};`
+
+    const result = getTemplateSubstitutions(value, [
+      { start: value.indexOf('${'), end: value.indexOf('}') + 1 },
+    ])
+
+    assert.strictEqual(result, `color: xx${separator}xxxxxxx${separator}x;`)
+    assert.strictEqual(result.length, value.length)
+  })
+
   it('should substitute placeholders after a multiline placeholder in their own context', () => {
     const value = ['color: ${', '  color', '};', 'width: ${10}%;'].join('\n')
     const firstStart = value.indexOf('${')

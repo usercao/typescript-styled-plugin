@@ -20,7 +20,8 @@ export class StyledVirtualDocumentProvider implements VirtualDocumentProvider {
   public constructor(private readonly typescript: typeof ts) {}
 
   public createVirtualDocument(context: TemplateContext): TextDocument {
-    const contents = `${this.getVirtualDocumentWrapper(context)}${context.text}\n}`
+    const templateText = context.text.replace(/[\u2028\u2029]/g, '\n')
+    const contents = `${this.getVirtualDocumentWrapper(context)}${templateText}\n}`
     return TextDocument.create('untitled://embedded.scss', 'scss', 1, contents)
   }
 

@@ -27,6 +27,21 @@ describe('StyledVirtualDocumentProvider', () => {
     )
   })
 
+  it.each([
+    ['line separator', '\u2028'],
+    ['paragraph separator', '\u2029'],
+  ])('should map positions across the Unicode %s', (_description, separator) => {
+    const context = createContext('css', `color: red;${separator}margin: 0;`)
+    const provider = new StyledVirtualDocumentProvider(ts)
+    const document = provider.createVirtualDocument(context)
+    const sourceOffset = context.text.indexOf('margin')
+    const virtualOffset = provider.toVirtualDocOffset(sourceOffset, context)
+    const virtualPosition = provider.toVirtualDocPosition(context.toPosition(sourceOffset))
+
+    assert.deepEqual(document.positionAt(virtualOffset), virtualPosition)
+    assert.strictEqual(document.offsetAt(virtualPosition), virtualOffset)
+  })
+
   it('should wrap keyframes templates in a keyframes rule', () => {
     const context = createContext('keyframes', '0% { opacity: 0; }')
     const provider = new StyledVirtualDocumentProvider(ts)
@@ -112,7 +127,7 @@ describe('StyledVirtualDocumentProvider', () => {
 function createContext(tagName: string, text: string): TemplateContext {
   const sourceFile = ts.createSourceFile(
     'fixture.ts',
-    `const styles = ${tagName}\`\`;`,
+    `const styles = ${tagName}\`${text}\`;`,
     ts.ScriptTarget.Latest,
     true,
   )
@@ -124,22 +139,41 @@ function createContext(tagName: string, text: string): TemplateContext {
   if (!initializer || !ts.isTaggedTemplateExpression(initializer)) {
     throw new Error('Expected a tagged template expression.')
   }
+  const bodyStart = initializer.template.getStart(sourceFile) + 1
+  const bodyStartPosition = sourceFile.getLineAndCharacterOfPosition(bodyStart)
 
   return {
+    typescript: ts,
+    fileName: sourceFile.fileName,
     node: initializer.template,
     text,
+    rawText: text,
     toPosition(offset) {
-      const beforeOffset = text.slice(0, offset)
-      const line = beforeOffset.split('\n').length - 1
-      return { line, character: beforeOffset.length - beforeOffset.lastIndexOf('\n') - 1 }
+      const position = sourceFile.getLineAndCharacterOfPosition(bodyStart + offset)
+      return {
+        line: position.line - bodyStartPosition.line,
+        character:
+          position.line === bodyStartPosition.line
+            ? position.character - bodyStartPosition.character
+            : position.character,
+      }
     },
     toOffset(position) {
+      if (position.line < 0) {
+        return -1
+      }
+      const line = bodyStartPosition.line + position.line
+      if (line >= sourceFile.getLineStarts().length) {
+        return text.length + 1
+      }
       return (
-        text
-          .split('\n')
-          .slice(0, position.line)
-          .reduce((offset, line) => offset + line.length + 1, 0) + position.character
+        sourceFile.getPositionOfLineAndCharacter(
+          line,
+          position.line === 0
+            ? bodyStartPosition.character + position.character
+            : position.character,
+        ) - bodyStart
       )
     },
-  } as TemplateContext
+  }
 }

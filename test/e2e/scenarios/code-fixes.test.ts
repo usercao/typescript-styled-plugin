@@ -132,6 +132,44 @@ describe('Code fixes', () => {
     })
   })
 
+  it.each([
+    ['line separator', '\u2028'],
+    ['paragraph separator', '\u2029'],
+  ])('should map a code fix after the Unicode %s', async (_description, separator) => {
+    const server = createServer()
+    openMockFile(
+      server,
+      fixtureFileName,
+      `const q = css\`color: red;${separator}boarder: 1px solid black;\``,
+    )
+    server.sendCommand('getCodeFixes', {
+      file: fixtureFileName,
+      startLine: 2,
+      startOffset: 1,
+      endLine: 2,
+      endOffset: 8,
+      errorCodes: [9999],
+    })
+
+    await server.close()
+    const response = getFirstResponseOfType('getCodeFixes', server)
+    assert.isTrue(response.success)
+    const fix = response.body.find((item) => item.description === "Rename to 'border'")
+    assert.isDefined(fix)
+    assert.deepEqual(fix?.changes, [
+      {
+        fileName: fixtureFileName,
+        textChanges: [
+          {
+            newText: 'border',
+            start: { line: 2, offset: 1 },
+            end: { line: 2, offset: 8 },
+          },
+        ],
+      },
+    ])
+  })
+
   it('should only return a spelling code fix when the range includes the misspelled property', () => {
     const server = createServer()
     openMockFile(server, fixtureFileName, 'const q = css`boarder: 1px solid black;`')

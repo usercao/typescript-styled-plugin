@@ -10,7 +10,10 @@ export function getTemplateSubstitutions(
   let lastOffset = 0
   const lineStartOffsets = [0]
   for (let offset = 0; offset < templateText.length; offset++) {
-    if (templateText[offset] === '\n') {
+    if (templateText[offset] === '\r' && templateText[offset + 1] === '\n') {
+      lineStartOffsets.push(offset + 2)
+      offset++
+    } else if (isLineTerminator(templateText[offset])) {
       lineStartOffsets.push(offset + 1)
     }
   }
@@ -62,13 +65,13 @@ function getSubstitution(context: {
     context.textBeforePlaceholder,
     context.textAfterPlaceholder,
   )
-  const result = context.placeholderText.replace(/[^\r\n]/g, replacementCharacter)
+  const result = context.placeholderText.replace(/[^\r\n\u2028\u2029]/g, replacementCharacter)
 
   if (replacementCharacter === ' ' && /^\s*;/.test(context.textAfterPlaceholder)) {
     if (/(;|^|\}|\{)[\s|\n]*$/.test(context.textBeforePlaceholder)) {
       return result.length < 4 ? 'a:0' : '$a:0' + result.slice(4)
     }
-    return context.placeholderText.replace(/[^\r\n]/g, 'x')
+    return context.placeholderText.replace(/[^\r\n\u2028\u2029]/g, 'x')
   }
 
   if (
@@ -96,7 +99,7 @@ function getReplacementCharacter(
   textBeforePlaceholder: string,
   textAfterPlaceholder: string,
 ) {
-  const emptySpacesRegExp = /(^|\n)\s*$/
+  const emptySpacesRegExp = /(^|[\r\n\u2028\u2029])\s*$/
   if (
     emptySpacesRegExp.test(textBeforeCurrentLine) &&
     emptySpacesRegExp.test(textBeforePlaceholder)
@@ -118,12 +121,18 @@ function maskSubstitutions(
     const start = Math.max(0, Math.min(characters.length, span.start))
     const end = Math.max(start, Math.min(characters.length, span.end))
     for (let offset = start; offset < end; offset++) {
-      if (characters[offset] !== '\n' && characters[offset] !== '\r') {
+      if (!isLineTerminator(characters[offset])) {
         characters[offset] = 'x'
       }
     }
   }
   return characters.join('')
+}
+
+function isLineTerminator(character: string | undefined): boolean {
+  return (
+    character === '\r' || character === '\n' || character === '\u2028' || character === '\u2029'
+  )
 }
 
 function isCustomPropertyName(textBeforePlaceholder: string): boolean {

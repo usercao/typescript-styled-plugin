@@ -79,10 +79,10 @@ jobs:
           - name: Node 22.12 / TypeScript 6.0.2
             node-version: 22.12.0
             typescript-package: typescript-minimum
-          - name: Node 22.12 / TypeScript current
+          - name: Node 22.12 / latest supported TypeScript 6.x
             node-version: 22.12.0
             typescript-package: typescript-current
-          - name: Node 24 / TypeScript current
+          - name: Node 24 / latest supported TypeScript 6.x
             node-version: 24.21.0
             typescript-package: typescript-current
     steps:

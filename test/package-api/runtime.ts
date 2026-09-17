@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 
 const workspaceRoot = path.resolve(import.meta.dirname, '../..')
+const buildOutputDirectory = path.join(workspaceRoot, 'lib')
 const temporaryDirectory = mkdtempSync(path.join(tmpdir(), 'typescript-styled-plugin-'))
 const packageDirectory = path.join(
   temporaryDirectory,
@@ -14,12 +15,17 @@ const packageDirectory = path.join(
 )
 
 try {
-  const packResult = JSON.parse(
-    execFileSync('npm', ['pack', '--json', '--pack-destination', temporaryDirectory], {
+  rmSync(buildOutputDirectory, { recursive: true, force: true })
+  const packOutput = execFileSync(
+    'npm',
+    ['pack', '--json', '--pack-destination', temporaryDirectory],
+    {
       cwd: workspaceRoot,
       encoding: 'utf8',
-    }),
+    },
   )
+  const jsonStart = packOutput.lastIndexOf('\n[')
+  const packResult = JSON.parse(packOutput.slice(jsonStart === -1 ? 0 : jsonStart + 1))
   const archive = path.join(temporaryDirectory, packResult[0].filename)
   mkdirSync(packageDirectory, { recursive: true })
   execFileSync('tar', ['-xzf', archive, '--strip-components=1', '-C', packageDirectory])

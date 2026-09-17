@@ -121,7 +121,10 @@ configuration path.
 ## Packaging and pull requests
 
 `package.json` publishes only `lib/`; runtime dependencies are installed by npm
-from the package's `dependencies`. Inspect the release contents with:
+from the package's `dependencies`. The `prepack` lifecycle rebuilds `lib/`
+before npm creates a tarball. The package API test removes any existing build
+output before packing, then loads both the synchronous tsserver entry and the
+ESM API from the extracted archive. Inspect the release contents with:
 
 ```bash
 npm pack --dry-run

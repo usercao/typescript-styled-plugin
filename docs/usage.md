@@ -17,7 +17,7 @@ installation alone does not prove that an editor can load the plugin.
 Install the plugin beside the TypeScript version that the editor will use:
 
 ```bash
-npm install --save-dev @styled/typescript-styled-plugin typescript
+npm install --save-dev @styled/typescript-styled-plugin typescript@^6.0.3
 ```
 
 Add the plugin to the project `tsconfig.json` or `jsconfig.json`:

@@ -51,6 +51,7 @@
     "format:check": "oxfmt --check .",
     "lint": "oxlint .",
     "lint:fix": "oxlint --fix .",
+    "prepack": "yarn compile",
     "test": "yarn test:unit && yarn test:e2e",
     "test:e2e": "yarn compile && yarn test:e2e:run",
     "test:e2e:current": "TSSERVER_TYPESCRIPT_PACKAGE=typescript-current yarn test:e2e",

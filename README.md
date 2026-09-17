@@ -27,7 +27,7 @@ not prove editor compatibility.
 Install the plugin alongside the workspace TypeScript SDK:
 
 ```bash
-npm install --save-dev @styled/typescript-styled-plugin typescript
+npm install --save-dev @styled/typescript-styled-plugin typescript@^6.0.3
 ```
 
 ```json

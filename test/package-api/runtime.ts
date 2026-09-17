@@ -37,8 +37,11 @@ try {
   const requireFromWorkspace = createRequire(path.join(workspaceRoot, 'package.json'))
   const pluginFactory = requireFromPackageConsumer('@styled/typescript-styled-plugin')
   const typescript = requireFromWorkspace('typescript/lib/tsserverlibrary.js')
+  if (typeof pluginFactory !== 'function') {
+    throw new TypeError('The packed tsserver entry must export a synchronous plugin factory.')
+  }
   const plugin = pluginFactory({ typescript })
-  if (typeof pluginFactory !== 'function' || typeof plugin.create !== 'function') {
+  if (typeof plugin.create !== 'function') {
     throw new TypeError('The packed tsserver entry must export a synchronous plugin factory.')
   }
 

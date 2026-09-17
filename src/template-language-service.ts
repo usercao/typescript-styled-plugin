@@ -145,6 +145,7 @@ export class StyledTemplateLanguageService implements TemplateLanguageService {
       this.virtualDocumentFactory,
       this.virtualDocumentSessionProvider,
       this.scssLanguageService,
+      () => this.configurationManager.config.validate,
     )
     return this.diagnosticsFeature
   }

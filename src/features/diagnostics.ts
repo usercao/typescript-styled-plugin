@@ -17,9 +17,14 @@ export class DiagnosticsFeature {
     private readonly virtualDocumentFactory: VirtualDocumentProvider,
     private readonly virtualDocumentSessionProvider: VirtualDocumentSessionProvider,
     private readonly scssLanguageService: ScssLanguageService,
+    private readonly isValidationEnabled: () => boolean,
   ) {}
 
   public getSemanticDiagnostics(context: TemplateContext): ts.Diagnostic[] {
+    if (!this.isValidationEnabled()) {
+      return []
+    }
+
     const { document, stylesheet } = this.virtualDocumentSessionProvider.getParsedDocument(context)
     return this.scssLanguageService
       .doValidation(document, stylesheet)

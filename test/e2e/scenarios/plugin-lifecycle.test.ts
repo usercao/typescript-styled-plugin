@@ -66,20 +66,31 @@ describe('Plugin lifecycle', () => {
     assert.isFalse(getResponseForRequest('completions', resetTagsRequest, server).success)
   })
 
-  it('should suppress CSS diagnostics when validation is disabled', async () => {
+  it('should apply validation configuration changes', async () => {
     const server = createServer()
     const file = getFixtureFilePath()
     openMockFile(server, file, 'const q = css`boarder: 1px solid black;`')
+    const enabledRequest = server.sendCommand('semanticDiagnosticsSync', { file })
     server.sendCommand('configurePlugin', {
       pluginName: '@styled/typescript-styled-plugin',
       configuration: { validate: false },
     })
-    server.sendCommand('semanticDiagnosticsSync', { file })
+    const disabledRequest = server.sendCommand('semanticDiagnosticsSync', { file })
+    server.sendCommand('configurePlugin', {
+      pluginName: '@styled/typescript-styled-plugin',
+      configuration: {},
+    })
+    const resetRequest = server.sendCommand('semanticDiagnosticsSync', { file })
 
     await server.close()
-    const diagnostics = getFirstResponseOfType('semanticDiagnosticsSync', server)
-    assert.isTrue(diagnostics.success)
-    assert.isFalse(diagnostics.body.some((diagnostic) => diagnostic.code === cssDiagnosticCode))
+    const cssDiagnostics = [enabledRequest, disabledRequest, resetRequest].map((requestSequence) =>
+      getResponseForRequest('semanticDiagnosticsSync', requestSequence, server).body.filter(
+        (diagnostic) => diagnostic.code === cssDiagnosticCode,
+      ),
+    )
+    assert.lengthOf(cssDiagnostics[0], 1)
+    assert.deepEqual(cssDiagnostics[1], [])
+    assert.lengthOf(cssDiagnostics[2], 1)
   })
 
   it('should apply CSS lint levels through plugin configuration', async () => {

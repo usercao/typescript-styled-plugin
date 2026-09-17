@@ -6,6 +6,7 @@ import { TextDocument } from 'vscode-languageserver-textdocument'
 
 export interface VirtualDocumentProvider {
   createVirtualDocument(context: TemplateContext): TextDocument
+  canReuseVirtualDocument?(previousContext: TemplateContext, context: TemplateContext): boolean
   toVirtualDocPosition(position: ts.LineAndCharacter): ts.LineAndCharacter
   fromVirtualDocPosition(position: ts.LineAndCharacter): ts.LineAndCharacter
   toVirtualDocOffset(offset: number, context: TemplateContext): number
@@ -23,6 +24,17 @@ export class StyledVirtualDocumentProvider implements VirtualDocumentProvider {
     const templateText = context.text.replace(/[\u2028\u2029]/g, '\n')
     const contents = `${this.getVirtualDocumentWrapper(context)}${templateText}\n}`
     return TextDocument.create('untitled://embedded.scss', 'scss', 1, contents)
+  }
+
+  public canReuseVirtualDocument(
+    previousContext: TemplateContext,
+    context: TemplateContext,
+  ): boolean {
+    return (
+      previousContext.fileName === context.fileName &&
+      previousContext.text === context.text &&
+      this.getVirtualDocumentWrapper(previousContext) === this.getVirtualDocumentWrapper(context)
+    )
   }
 
   public toVirtualDocPosition(position: ts.LineAndCharacter): ts.LineAndCharacter {

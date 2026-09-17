@@ -117,6 +117,30 @@ describe('Plugin lifecycle', () => {
     assert.strictEqual(diagnostics[2]?.[0]?.category, 'error')
   })
 
+  it('should apply unknown at-rule lint levels through plugin configuration', async () => {
+    const server = createServer()
+    const file = getFixtureFilePath()
+    openMockFile(server, file, 'const q = css`@not-a-rule { color: red; }`')
+    const diagnosticRequests: number[] = []
+    for (const unknownAtRules of ['ignore', 'warning', 'error'] as const) {
+      server.sendCommand('configurePlugin', {
+        pluginName: '@styled/typescript-styled-plugin',
+        configuration: { lint: { unknownAtRules } },
+      })
+      diagnosticRequests.push(server.sendCommand('semanticDiagnosticsSync', { file }))
+    }
+
+    await server.close()
+    const diagnostics = diagnosticRequests.map((requestSequence) =>
+      getResponseForRequest('semanticDiagnosticsSync', requestSequence, server).body.filter(
+        (diagnostic) => diagnostic.code === cssDiagnosticCode,
+      ),
+    )
+    assert.deepEqual(diagnostics[0], [])
+    assert.strictEqual(diagnostics[1]?.[0]?.category, 'warning')
+    assert.strictEqual(diagnostics[2]?.[0]?.category, 'error')
+  })
+
   it('should apply and reset valid CSS properties through plugin configuration', async () => {
     const server = createServer()
     const file = getFixtureFilePath()

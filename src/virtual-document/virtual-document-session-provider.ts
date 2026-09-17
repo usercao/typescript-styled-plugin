@@ -16,9 +16,7 @@ export interface VirtualDocumentSessionProvider {
 }
 
 export class CachedVirtualDocumentSessionProvider implements VirtualDocumentSessionProvider {
-  private cachedFileName?: string
-  private cachedText?: string
-  private cachedWrapper?: string
+  private cachedContext?: TemplateContext
   private cachedDocument?: TextDocument
   private cachedStylesheet?: Stylesheet
 
@@ -28,19 +26,15 @@ export class CachedVirtualDocumentSessionProvider implements VirtualDocumentSess
   ) {}
 
   public getDocument(context: TemplateContext): TextDocument {
-    const wrapper = this.virtualDocumentProvider.getVirtualDocumentWrapper(context)
     if (
       this.cachedDocument &&
-      context.fileName === this.cachedFileName &&
-      context.text === this.cachedText &&
-      wrapper === this.cachedWrapper
+      this.cachedContext &&
+      this.virtualDocumentProvider.canReuseVirtualDocument?.(this.cachedContext, context)
     ) {
       return this.cachedDocument
     }
 
-    this.cachedFileName = context.fileName
-    this.cachedText = context.text
-    this.cachedWrapper = wrapper
+    this.cachedContext = context
     this.cachedDocument = this.virtualDocumentProvider.createVirtualDocument(context)
     this.cachedStylesheet = undefined
     return this.cachedDocument

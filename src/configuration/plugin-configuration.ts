@@ -18,6 +18,7 @@ export interface StyledPluginLintConfiguration {
   readonly important?: StyledPluginLintLevel
   readonly propertyIgnoredDueToDisplay?: StyledPluginLintLevel
   readonly universalSelector?: StyledPluginLintLevel
+  readonly unknownAtRules?: StyledPluginLintLevel
   readonly unknownProperties?: StyledPluginLintLevel
   readonly unknownVendorSpecificProperties?: StyledPluginLintLevel
   readonly validProperties?: ReadonlyArray<string>

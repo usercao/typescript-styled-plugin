@@ -17,6 +17,7 @@ declare const virtualDocumentProvider: VirtualDocumentProvider
 
 const lintLevel: StyledPluginLintLevel = 'warning'
 const lintConfiguration: StyledPluginLintConfiguration = {
+  unknownAtRules: 'ignore',
   unknownProperties: lintLevel,
   validProperties: ['--accent-color'],
 }
@@ -55,6 +56,11 @@ const sourcePosition: ts.LineAndCharacter = virtualDocumentProvider.fromVirtualD
   character: 0,
 })
 const sourceOffset: number = virtualDocumentProvider.fromVirtualDocOffset(7, {} as never)
+const legacyCodeFixes: ts.CodeAction[] = templateLanguageService.getCodeFixesAtPosition(
+  {} as never,
+  0,
+  0,
+)
 
 void configuration
 void virtualDocumentProvider
@@ -66,3 +72,4 @@ void templateSettings
 void templateLanguageService
 void sourcePosition
 void sourceOffset
+void legacyCodeFixes

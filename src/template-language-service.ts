@@ -115,7 +115,7 @@ export class StyledTemplateLanguageService implements TemplateLanguageService {
     context: TemplateContext,
     start: number,
     end: number,
-    errorCodes: readonly number[],
+    errorCodes?: readonly number[],
   ): ts.CodeAction[] {
     return this.codeActions.getCodeFixesAtPosition(context, start, end, errorCodes)
   }

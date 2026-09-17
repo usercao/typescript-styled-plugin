@@ -20,7 +20,6 @@ const emptyCompletionList: vscode.CompletionList = {
 interface CompletionResult {
   readonly items: vscode.CompletionList
   readonly document: TextDocument
-  readonly wrapper: string
 }
 
 export class CompletionsFeature {
@@ -93,8 +92,7 @@ export class CompletionsFeature {
       return undefined
     }
 
-    const wrapper = this.virtualDocumentFactory.getVirtualDocumentWrapper(context)
-    const cached = this.cache.getCached(context, position, wrapper)
+    const cached = this.cache.getCached(context, position, this.virtualDocumentFactory)
     if (cached) {
       return cached
     }
@@ -119,31 +117,28 @@ export class CompletionsFeature {
       completions.items.push(...emmetResults.items)
       completions.isIncomplete = true
     }
-    const result = { items: completions, document, wrapper }
+    const result = { items: completions, document }
     this.cache.updateCached(context, position, result)
     return result
   }
 }
 
 class CompletionsCache {
-  private cachedFileName?: string
+  private cachedContext?: TemplateContext
   private cachedPosition?: ts.LineAndCharacter
-  private cachedText?: string
-  private cachedWrapper?: string
   private result?: CompletionResult
 
   public getCached(
     context: TemplateContext,
     position: ts.LineAndCharacter,
-    wrapper: string,
+    virtualDocumentProvider: VirtualDocumentProvider,
   ): CompletionResult | undefined {
     if (
       this.result &&
-      context.fileName === this.cachedFileName &&
+      this.cachedContext &&
       this.cachedPosition &&
       positionsEqual(position, this.cachedPosition) &&
-      context.text === this.cachedText &&
-      wrapper === this.cachedWrapper
+      virtualDocumentProvider.canReuseVirtualDocument?.(this.cachedContext, context)
     ) {
       return this.result
     }
@@ -155,18 +150,14 @@ class CompletionsCache {
     position: ts.LineAndCharacter,
     result: CompletionResult,
   ) {
-    this.cachedFileName = context.fileName
+    this.cachedContext = context
     this.cachedPosition = position
-    this.cachedText = context.text
-    this.cachedWrapper = result.wrapper
     this.result = result
   }
 
   public clear() {
-    this.cachedFileName = undefined
+    this.cachedContext = undefined
     this.cachedPosition = undefined
-    this.cachedText = undefined
-    this.cachedWrapper = undefined
     this.result = undefined
   }
 }

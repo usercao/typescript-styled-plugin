@@ -264,6 +264,45 @@ describe('StyledTemplateLanguageService', () => {
     assert.deepEqual(service.getCodeFixesAtPosition(context, 0, context.text.length, [9999]), [])
   })
 
+  it('should support the legacy three-argument code fix API', () => {
+    const context = createContext('boarder: 1px solid black;')
+    const service = createServiceWithLanguageServiceResponses({
+      codeActions: [
+        {
+          title: "Rename to 'border'",
+          command: '_css.applyCodeAction',
+          arguments: [
+            undefined,
+            undefined,
+            [
+              {
+                range: {
+                  start: { line: 1, character: 0 },
+                  end: { line: 1, character: 7 },
+                },
+                newText: 'border',
+              },
+            ],
+          ],
+        },
+      ],
+    })
+
+    const fixes = service.getCodeFixesAtPosition(context, 0, 7)
+
+    assert.deepEqual(fixes, [
+      {
+        description: "Rename to 'border'",
+        changes: [
+          {
+            fileName: context.fileName,
+            textChanges: [{ newText: 'border', span: { start: 0, length: 7 } }],
+          },
+        ],
+      },
+    ])
+  })
+
   it('should convert nested CSS folding ranges to template offsets', () => {
     const context = createContext(['a {', '  color: red;', '}', 'div {', '', '}'].join('\n'))
     const spans = createService().getOutliningSpans(context)
@@ -367,6 +406,58 @@ describe('StyledTemplateLanguageService', () => {
     assert.strictEqual(createVirtualDocument.mock.calls.length, 3)
     assert.strictEqual(factory.parsedDocuments.length, 3)
     assert.match(factory.parsedDocuments[2]?.getText() ?? '', /^@keyframes/)
+  })
+
+  it('should not reuse documents across contexts for a custom provider without a cache key', () => {
+    const factory = createFakeLanguageServiceFactory()
+    const provider: VirtualDocumentProvider = {
+      ...createCustomVirtualDocumentProvider('', ''),
+      createVirtualDocument(context) {
+        return TextDocument.create('untitled://custom.scss', 'scss', 1, context.rawText)
+      },
+    }
+    const service = new StyledTemplateLanguageService(
+      ts,
+      new PluginConfigurationManager(),
+      provider,
+      factory,
+    )
+    const context = createContext('same')
+
+    service.getSemanticDiagnostics({ ...context, rawText: 'first' })
+    service.getSemanticDiagnostics({ ...context, rawText: 'second' })
+
+    assert.deepEqual(
+      factory.parsedDocuments.map((document) => document.getText()),
+      ['first', 'second'],
+    )
+  })
+
+  it('should not reuse completions across contexts for a custom provider without a cache key', () => {
+    const provider: VirtualDocumentProvider = {
+      ...createCustomVirtualDocumentProvider('', ''),
+      createVirtualDocument(context) {
+        return TextDocument.create('untitled://custom.scss', 'scss', 1, context.rawText)
+      },
+    }
+    const service = createServiceWithCompletionItems(
+      (document) => [{ label: document.getText() }],
+      provider,
+    )
+    const context = createContext('same')
+    const position = context.toPosition(context.text.length)
+
+    const first = service.getCompletionsAtPosition({ ...context, rawText: 'first' }, position)
+    const second = service.getCompletionsAtPosition({ ...context, rawText: 'second' }, position)
+
+    assert.deepEqual(
+      first.entries.map((entry) => entry.name),
+      ['first'],
+    )
+    assert.deepEqual(
+      second.entries.map((entry) => entry.name),
+      ['second'],
+    )
   })
 
   it('should skip language services for empty interactive requests', () => {

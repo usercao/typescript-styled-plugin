@@ -123,6 +123,7 @@ settings do not cause a host failure.
 | Setting                           | Purpose                                                             | Default   |
 | --------------------------------- | ------------------------------------------------------------------- | --------- |
 | `validProperties`                 | Extra property names treated as valid. This is an array of strings. | Not set   |
+| `unknownAtRules`                  | Unknown CSS at-rules.                                               | `warning` |
 | `unknownProperties`               | Unknown CSS property names.                                         | `warning` |
 | `compatibleVendorPrefixes`        | Missing related vendor-prefixed properties.                         | `ignore`  |
 | `vendorPrefix`                    | Vendor-prefixed properties without a standard equivalent.           | `warning` |

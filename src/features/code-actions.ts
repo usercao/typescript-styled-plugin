@@ -25,7 +25,7 @@ export class CodeActionsFeature {
     context: TemplateContext,
     start: number,
     end: number,
-    errorCodes: readonly number[],
+    errorCodes: readonly number[] = [CSS_DIAGNOSTIC_CODE],
   ): ts.CodeAction[] {
     if (!errorCodes.includes(CSS_DIAGNOSTIC_CODE)) {
       return []

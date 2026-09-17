@@ -15,6 +15,7 @@ describe('Styled-components syntax', () => {
     ['styled.keyframes', 'const animation = styled.keyframes`0% { color: }`'],
     ['createGlobalStyle', 'const GlobalStyle = createGlobalStyle`color:`'],
     ['globalStyle', 'globalStyle`color:`'],
+    ['injectGlobal', 'injectGlobal`color:`'],
     ['extend', 'const Extended = Button.extend`color:`'],
   ])('should provide CSS completions for %s', async (_name, source) => {
     const server = createServer()

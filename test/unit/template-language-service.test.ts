@@ -195,6 +195,49 @@ describe('StyledTemplateLanguageService', () => {
     assert.isUndefined(variable.replacementSpan)
   })
 
+  it('should merge CSS, filtered SCSS, and Emmet completions in order', () => {
+    const context = createContext('m10')
+    const factory = createFakeLanguageServiceFactory(
+      [{ label: 'css-only' }, { label: ':shared' }],
+      {
+        scssCompletions: {
+          isIncomplete: false,
+          items: [
+            { label: 'filtered-property', kind: vscode.CompletionItemKind.Property },
+            { label: ':scss-only', kind: vscode.CompletionItemKind.Function },
+            { label: ':shared', kind: vscode.CompletionItemKind.Function },
+          ],
+        },
+      },
+    )
+    const emmetCompletionProvider: EmmetCompletionProvider = {
+      doComplete() {
+        return {
+          isIncomplete: false,
+          items: [{ label: ':shared' }, { label: 'emmet-only' }],
+        }
+      },
+    }
+    const service = new StyledTemplateLanguageService(
+      ts,
+      new PluginConfigurationManager(),
+      new StyledVirtualDocumentProvider(ts),
+      factory,
+      emmetCompletionProvider,
+    )
+
+    const completions = service.getCompletionsAtPosition(
+      context,
+      context.toPosition(context.text.length),
+    )
+
+    assert.deepEqual(
+      completions.entries.map((entry) => entry.name),
+      ['css-only', ':shared', ':scss-only', ':shared', ':shared', 'emmet-only'],
+    )
+    assert.deepEqual(completions.metadata, { isIncomplete: true })
+  })
+
   it('should not reuse completions between different virtual document wrappers', () => {
     const service = createServiceWithCompletionItems((document) => [
       { label: document.getText().startsWith('@keyframes') ? 'keyframes' : 'root' },
@@ -219,6 +262,44 @@ describe('StyledTemplateLanguageService', () => {
       keyframesCompletions.entries.map((entry) => entry.name),
       ['keyframes'],
     )
+  })
+
+  it('should not reuse completion or virtual-document caches across files', () => {
+    let cssCompletionRequests = 0
+    const factory = createFakeLanguageServiceFactory(() => [
+      { label: ++cssCompletionRequests === 1 ? 'first' : 'second' },
+    ])
+    const virtualDocumentProvider = new StyledVirtualDocumentProvider(ts)
+    const createVirtualDocument = vi.spyOn(virtualDocumentProvider, 'createVirtualDocument')
+    const service = new StyledTemplateLanguageService(
+      ts,
+      new PluginConfigurationManager(),
+      virtualDocumentProvider,
+      factory,
+    )
+    const firstContext = createContext('color:', 'css', 'first.ts')
+    const secondContext = createContext('color:', 'css', 'second.ts')
+
+    const first = service.getCompletionsAtPosition(
+      firstContext,
+      firstContext.toPosition(firstContext.text.length),
+    )
+    const second = service.getCompletionsAtPosition(
+      secondContext,
+      secondContext.toPosition(secondContext.text.length),
+    )
+
+    assert.deepEqual(
+      first.entries.map((entry) => entry.name),
+      ['first'],
+    )
+    assert.deepEqual(
+      second.entries.map((entry) => entry.name),
+      ['second'],
+    )
+    assert.strictEqual(createVirtualDocument.mock.calls.length, 2)
+    assert.strictEqual(factory.parsedDocuments.length, 2)
+    assert.strictEqual(factory.completionRequests, 4)
   })
 
   it('should convert CSS hover documentation and ranges to template offsets', () => {
@@ -758,7 +839,7 @@ function createFakeLanguageServiceFactory(
     },
     doComplete() {
       completionRequests++
-      return { isIncomplete: false, items: [] }
+      return responses.scssCompletions ?? { isIncomplete: false, items: [] }
     },
     doHover() {
       hoverRequests++
@@ -807,11 +888,12 @@ interface FakeLanguageServiceResponses {
   readonly diagnostics?: ReturnType<ScssLanguageService['doValidation']>
   readonly foldingRanges?: ReturnType<ScssLanguageService['getFoldingRanges']>
   readonly hover?: Exclude<ReturnType<ScssLanguageService['doHover']>, null>
+  readonly scssCompletions?: ReturnType<ScssLanguageService['doComplete']>
 }
 
-function createContext(text: string, tagName = 'css'): TemplateContext {
+function createContext(text: string, tagName = 'css', fileName = 'fixture.ts'): TemplateContext {
   const sourceFile = ts.createSourceFile(
-    'fixture.ts',
+    fileName,
     `const styles = ${tagName}\`${text}\`;`,
     ts.ScriptTarget.Latest,
     true,

@@ -1,3 +1,5 @@
+name: Continuous Integration
+
 on:
   push:
     branches:
@@ -5,21 +7,45 @@ on:
   pull_request:
     branches:
       - main
-name: Continuous Integration
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
   lint:
     name: Lint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - name: Install Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v7
         with:
           node-version-file: .github/.node-version
           package-manager-cache: false
       - run: corepack enable
+      - name: Find Yarn cache
+        id: yarn-cache-dir
+        run: echo "dir=$(yarn config get cacheFolder)" >> "$GITHUB_OUTPUT"
+      - name: Cache Yarn packages
+        uses: actions/cache@v6
+        with:
+          path: ${{ steps.yarn-cache-dir.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock', 'package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
       - run: yarn install --immutable
       - name: Formatting
         run: yarn format:check
@@ -27,16 +53,29 @@ jobs:
         run: yarn lint
   compile:
     name: Compile and Typecheck
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - name: Install Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v7
         with:
           node-version-file: .github/.node-version
           package-manager-cache: false
       - run: corepack enable
+      - name: Find Yarn cache
+        id: yarn-cache-dir
+        run: echo "dir=$(yarn config get cacheFolder)" >> "$GITHUB_OUTPUT"
+      - name: Cache Yarn packages
+        uses: actions/cache@v6
+        with:
+          path: ${{ steps.yarn-cache-dir.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock', 'package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
       - run: yarn install --immutable
       - name: Compiling
         run: yarn compile
@@ -47,37 +86,53 @@ jobs:
       - name: Package contents
         run: mkdir -p package-artifact && npm pack --pack-destination package-artifact
       - name: Upload packed package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: package-tarball
           path: package-artifact/*.tgz
           if-no-files-found: error
+          retention-days: 1
       - name: Upload build output
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: lib
           path: lib
           if-no-files-found: error
+          retention-days: 1
   unit:
     name: Unit Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - name: Install Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v7
         with:
           node-version-file: .github/.node-version
           package-manager-cache: false
       - run: corepack enable
+      - name: Find Yarn cache
+        id: yarn-cache-dir
+        run: echo "dir=$(yarn config get cacheFolder)" >> "$GITHUB_OUTPUT"
+      - name: Cache Yarn packages
+        uses: actions/cache@v6
+        with:
+          path: ${{ steps.yarn-cache-dir.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock', 'package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
       - run: yarn install --immutable
       - name: Compiling
         run: yarn compile
       - run: yarn test:unit
   e2e:
     name: E2E (${{ matrix.name }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: compile
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
@@ -94,22 +149,34 @@ jobs:
             typescript-package: typescript-current
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - name: Install Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node-version }}
           package-manager-cache: false
       - run: corepack enable
+      - name: Find Yarn cache
+        id: yarn-cache-dir
+        run: echo "dir=$(yarn config get cacheFolder)" >> "$GITHUB_OUTPUT"
+      - name: Cache Yarn packages
+        uses: actions/cache@v6
+        with:
+          path: ${{ steps.yarn-cache-dir.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock', 'package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
       - run: yarn install --immutable
       - name: Download build output
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: lib
           path: lib
       - name: Download packed package
         if: matrix.test-package-runtime
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: package-tarball
           path: package-artifact
